@@ -1,0 +1,94 @@
+// params.h
+
+// number of params for selecting individual tracks
+const int NUMPARAMS = 200;
+
+Parameter model0("Model0", "", 0);
+Parameter model1("Model1", "", 0);
+Parameter model2("Model2", "", 0);
+Parameter model3("Model3", "", 0);
+Parameter model4("Model4", "", 0);
+Parameter model5("Model5", "", 0);
+Parameter model6("Model6", "", 0);
+Parameter model7("Model7", "", 0);
+
+Parameter globalGain("GlobalGain", "", 0.02);
+
+//Parameter minSel("MinSelector", "", 0);
+//Parameter maxSel("MaxSelector", "", 0);
+Parameter amp("Amplitude", "", 0.02);
+Parameter amFreq("AM", "", 0);
+Parameter fmFreq("FM", "", 0);
+Parameter modDepth("ModDepth", "", 0);
+
+Parameter pullTrigger("TriggerNow", "", 0);
+Parameter loop("Loop", "", 0);
+Parameter resetAmp("ResetAmps", "", 0);
+Parameter solo("SoloSelected", "", 0);
+Parameter mute("MuteSelected", "", 0);
+Parameter drawSelected("DrawSelected", "", 0);
+
+Parameter specPos("SpectralPosition", "", 0);
+Parameter nullPos("NullPosition", "", 0);
+Parameter squarePos("SquarePosition", "", 0);
+Parameter randPos("RandomPosition", "", 0);
+Parameter circlePos("CirclePosition", "", 0);
+Parameter linePos("LinePosition", "", 0);
+Parameter loudestPos("LoudestPosition", "", 0);
+Parameter spherePos("SpherePosition", "", 0);
+
+Parameter animate("Animate", "", 0);
+Parameter velocity("VelocityScaler", "", 0);
+Parameter scaler("Scaler", "", 0.1);
+
+std::vector<Parameter *> trackSelector;
+
+
+void registerParams(ParameterServer& paramServer) {
+
+    for (int i=0; i<NUMPARAMS; ++i) {
+        string paramKey = "Select" + to_string(int(i));
+        Parameter *newParam = new Parameter(paramKey, "", 0);
+        trackSelector.push_back(newParam);
+        paramServer.registerParameter(*newParam);
+    }
+
+    paramServer.registerParameter(model0);
+    paramServer.registerParameter(model1);
+    paramServer.registerParameter(model2);
+    paramServer.registerParameter(model3);
+    paramServer.registerParameter(model4);
+    paramServer.registerParameter(model5);
+    paramServer.registerParameter(model6);
+    paramServer.registerParameter(model7);
+
+    paramServer.registerParameter(globalGain);
+
+//    paramServer.registerParameter(minSel);
+//    paramServer.registerParameter(maxSel);
+    paramServer.registerParameter(amp);
+    paramServer.registerParameter(amFreq);
+    paramServer.registerParameter(fmFreq);
+    paramServer.registerParameter(modDepth);
+    paramServer.registerParameter(mute);
+
+    paramServer.registerParameter(pullTrigger);
+    paramServer.registerParameter(loop);
+    paramServer.registerParameter(resetAmp);
+    paramServer.registerParameter(solo);
+    paramServer.registerParameter(drawSelected);
+
+    paramServer.registerParameter(specPos);
+    paramServer.registerParameter(nullPos);
+    paramServer.registerParameter(squarePos);
+    paramServer.registerParameter(randPos);
+    paramServer.registerParameter(circlePos);
+    paramServer.registerParameter(linePos);
+    paramServer.registerParameter(loudestPos);
+    paramServer.registerParameter(spherePos);
+
+    paramServer.registerParameter(animate);
+    paramServer.registerParameter(velocity);
+    paramServer.registerParameter(scaler);
+
+}
