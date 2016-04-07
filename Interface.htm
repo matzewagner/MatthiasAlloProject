@@ -1,0 +1,710 @@
+<html>
+<head>
+  <script src='interface.js'></script>
+</head>
+<body>
+  <script>
+  // place your script here
+
+	var page1 = new Interface.Panel({
+		useRelativeSizesAndPositions: true,
+	});
+	var page2 = new Interface.Panel({
+		useRelativeSizesAndPositions: true,
+	});
+	var page3 = new Interface.Panel({
+		useRelativeSizesAndPositions: true,
+	});
+
+	var slider_thickness = 0.075;
+	var buttonWidth = 0.1;
+	var slider_length = 0.85;
+	var margin = 0.005;
+	var extra_y_margin = 0.02;
+	var slider_x_margin = 0.125;
+	var label_x_margin = 0.02;
+	var label_length = 0.1;
+	var label_extra_y_margin = 0.02;
+
+	var pageButtonColor = 'lightslategrey';
+	var labelStrokeColor = 'white';
+	var sliderStrokeColor = 'black';
+	var sliderBackgroundColor = 'lightslategrey';
+	var slider1Color = 'bisque';
+	var slider2Color = 'lightskyblue';
+	var slider3Color = 'lightseagreen';
+	var slider4Color = 'lightcoral';
+	var slider5Color = 'brown';
+
+	var modelButtonColor = 'brown'
+
+//-------------------------------------------------------------------
+
+	var l1 = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*0 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:1.0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var s1 = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*0, slider_length, slider_thickness],
+		label: 'global gain',
+		isVertical:false,
+		value:1.0/50.0,
+		fill: 'red',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/GlobalGain',
+		onvaluechange : function() {
+			l1.setValue( (this.value*50).toFixed(3) );
+		}
+	});
+	// var l1 = new Interface.Label({
+	// 	bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*0 + label_extra_y_margin, label_length, slider_thickness],
+	// 	hAlign:'center',
+	// 	value:0,
+	// 	size:22,
+	// 	stroke:labelStrokeColor,
+	// });
+	// var s1 = new Interface.Slider({
+	// 	bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*0, slider_length, slider_thickness],
+	// 	label: 'minSelector',
+	// 	isVertical:false,
+	// 	value:0.0,
+	// 	fill: 'orange',
+	// 	stroke: 'black',
+	// 	background: sliderBackgroundColor,
+	// 	target: 'OSC',
+	// 	key: '/MinSelector',
+	// 	onvaluechange : function() {
+	// 		l1.setValue( ((this.value*100)-1).toFixed(0) );
+	// 	}
+	// });
+	// var l2 = new Interface.Label({
+	// 	bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*1 + label_extra_y_margin, label_length, slider_thickness],
+	// 	hAlign:'center',
+	// 	value:0,
+	// 	size:22,
+	// 	stroke:labelStrokeColor,
+	// });
+	// var s2 = new Interface.Slider({
+	// 	bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*1, slider_length, slider_thickness],
+	// 	label: 'maxSelector',
+	// 	isVertical:false,
+	// 	value:0.0,
+	// 	fill: sliderBackgroundColor,
+	// 	stroke: 'black',
+	// 	background: 'orange',
+	// 	target: 'OSC',
+	// 	key: '/MaxSelector',
+	// 	onvaluechange : function() {
+	// 		l2.setValue( ((this.value*)-1).toFixed(0) );
+	// 	}
+	// });
+
+	var l3 = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*2 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:1.0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var s3 = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*2, slider_length, slider_thickness],
+		label: 'track amp',
+		isVertical:false,
+		value:1.0/20.0,
+		fill: 'red',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/Amplitude',
+		onvaluechange : function() {
+			l3.setValue( (this.value*50.0).toFixed(3) );
+		}
+	});
+	var amL = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*3 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:0.0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var amS = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*3, slider_length, slider_thickness],
+		label: 'AM Frequency',
+		isVertical:false,
+		value:0,
+		fill: 'navy',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/AM',
+		onvaluechange : function() {
+			amL.setValue( (this.value*1000.0).toFixed(3) );
+		}
+	});
+	var fmL = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*4 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:0.0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var fmS = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*4, slider_length, slider_thickness],
+		label: 'FM Frequency',
+		isVertical:false,
+		value:0,
+		fill: 'purple',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/FM',
+		onvaluechange : function() {
+			fmL.setValue( (this.value*1000.0).toFixed(3) );
+		}
+	});
+	var depthL = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*5 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:0.0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var depthS = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*5, slider_length, slider_thickness],
+		label: 'FM Amount',
+		isVertical:false,
+		value:0,
+		fill: 'darkseagreen',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/ModDepth',
+		onvaluechange : function() {
+			depthL.setValue( (this.value*100.0).toFixed(3) );
+		}
+	});
+	
+	var b1 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*0 + margin*0 , (extra_y_margin*1) + (slider_thickness+margin)*6, .1, slider_thickness],
+		label: 'trigger',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'red',
+		stroke: sliderStrokeColor,
+		background: 'white',
+		target: 'OSC',
+		key:'/TriggerNow'
+	});
+	var b2 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*1 + margin*1 , (extra_y_margin*1) + (slider_thickness+margin)*6, .1, slider_thickness],
+		label: 'loop',
+		isVertical:false,
+		value:0,
+		fill: 'olive',
+		stroke: sliderStrokeColor,
+		background: 'white',
+		target: 'OSC',
+		key:'/Loop'
+	});
+	var b3 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*2 + margin*2, (extra_y_margin*1) + (slider_thickness+margin)*6, .1, slider_thickness],
+		label: 'reset all amps',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'red',
+		target: 'OSC',
+		key:'/ResetAmps',
+		onvaluechange : function() {
+			l3.setValue( (1.0).toFixed(3) );
+			s3.setValue( (1.0/20.0).toFixed(3) );
+			amL.setValue(0);
+			amS.setValue(0);
+			fmL.setValue(0);
+			fmS.setValue(0);
+			depthL.setValue(0);
+			depthS.setValue(0);
+		}
+	});
+	var b4 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*3 + margin*3 , (extra_y_margin*1) + (slider_thickness+margin)*6, .1, slider_thickness],
+		label: 'solo selected',
+		isVertical:false,
+		value:0,
+		fill: 'blue',
+		stroke: sliderStrokeColor,
+		background: 'white',
+		target: 'OSC',
+		key:'/SoloSelected',
+		onvaluechange : function() {
+			b5.setValue( (0) );
+			b5.sendTargetMessage();
+		}
+	});
+	var b5 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*4 + margin*4 , (extra_y_margin*1) + (slider_thickness+margin)*6, .1, slider_thickness],
+		label: 'mute selected',
+		isVertical:false,
+		value:0,
+		fill: 'magenta',
+		stroke: sliderStrokeColor,
+		background: 'white',
+		target: 'OSC',
+		key:'/MuteSelected',
+		onvaluechange : function() {
+			b4.setValue( (0) );
+			b4.sendTargetMessage();
+		}
+	});
+	var b6 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*7 + margin*7 , (extra_y_margin*1) + (slider_thickness+margin)*6, .1, slider_thickness],
+		label: 'draw selected',
+		isVertical:false,
+		value:0,
+		fill: 'magenta',
+		stroke: sliderStrokeColor,
+		background: 'white',
+		target: 'OSC',
+		key:'/DrawSelected'
+	});
+
+	var posB1 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'null position',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'pink',
+		target: 'OSC',
+		key:'/NullPosition',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var posB2 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*1 + margin*1, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'circle position',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'pink',
+		target: 'OSC',
+		key:'/CirclePosition',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var posB3 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*2 + margin*2, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'line position',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'pink',
+		target: 'OSC',
+		key:'/LinePosition',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var posB4 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*3 + margin*3, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'sphere position',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'pink',
+		target: 'OSC',
+		key:'/SpherePosition',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var posB5 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*4 + margin*4, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'square position',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'pink',
+		target: 'OSC',
+		key:'/SquarePosition',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var posB6 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*5 + margin*5, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'loudest position',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'pink',
+		target: 'OSC',
+		key:'/LoudestPosition',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});	
+	var posB7 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*6 + margin*6, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'spectral position',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'pink',
+		target: 'OSC',
+		key:'/SpectralPosition',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var posB8 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*7 + margin*7, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'random position',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'pink',
+		target: 'OSC',
+		key:'/RandomPosition',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+
+	var animate = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*8, .1, slider_thickness],
+		label: 'animate',
+		isVertical:false,
+		value:0,
+		fill: 'lightgreen',
+		stroke: sliderStrokeColor,
+		background: 'red',
+		target: 'OSC',
+		key:'/Animate',
+	});
+
+	var l4 = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*9 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:1.0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var s4 = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*9, slider_length, slider_thickness],
+		label: 'velocity scaler',
+		isVertical:false,
+		value:1.0/20.0,
+		fill: 'teal',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/VelocityScaler',
+		onvaluechange : function() {
+			l4.setValue( (this.value*10).toFixed(3) );
+		}
+	});
+
+	var l5 = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*10 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:1.0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var s5 = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*10, slider_length, slider_thickness],
+		label: 'size scaler',
+		isVertical:false,
+		value:1.0/10.0,
+		fill: 'lightskyblue',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/Scaler',
+		onvaluechange : function() {
+			l5.setValue( (this.value*10).toFixed(3) );
+		}
+	});
+	
+	page1.background = 'black';
+	page1.add(s1, s3, amS, fmS, s4, depthS, s5,
+		  	  l1, l3, amL, fmL, l4, depthL, l5,
+		      b1, b2, b3, b4, b5, b6,
+		      posB1, posB2, posB3, posB4, posB5, posB6, posB7, posB8,
+		      animate
+		      );
+
+//-------------------------------------------------------------------
+
+	var model0 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'Model 0',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: modelButtonColor,
+		target: 'OSC',
+		key:'/Model0',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var model1 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*1 + margin*1, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'Model 1',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: modelButtonColor,
+		target: 'OSC',
+		key:'/Model1',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var model2 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*2 + margin*2, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'Model 2',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: modelButtonColor,
+		target: 'OSC',
+		key:'/Model2',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var model3 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*3 + margin*3, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'Model 3',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: modelButtonColor,
+		target: 'OSC',
+		key:'/Model3',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var model4 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*4 + margin*4, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'Model 4',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: modelButtonColor,
+		target: 'OSC',
+		key:'/Model4',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var model5 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*5 + margin*5, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'Model 5',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: modelButtonColor,
+		target: 'OSC',
+		key:'/Model5',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});	
+	var model6 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*6 + margin*6, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'Model 6',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: modelButtonColor,
+		target: 'OSC',
+		key:'/Model6',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+	var model7 = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*7 + margin*7, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
+		label: 'Model 7',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: modelButtonColor,
+		target: 'OSC',
+		key:'/Model7',
+		onvaluechange : function() {
+			animate.setValue( (0) );
+			animate.sendTargetMessage();
+		}
+	});
+
+	page2.background = 'black';
+	page2.add(model0, model1, model2, model3, model4, model5, model6, 
+			  model7);
+
+//-------------------------------------------------------------------
+	
+
+	var myButton = [];
+	var numButtons = 100;
+	var columns = 10;
+	var rows = 10;
+	var index = 0;
+	for (var j=0; j<columns; ++j) {
+		for (var i=0; i<rows; ++i) {
+			var buttonKey = '/Select'+index;
+			 myButton[i] = new Interface.Button({
+				bounds:[j/rows, i*(0.9/rows), .1, 0.9/rows],
+				label: index,
+				isVertical:false,
+				value:0,
+				fill: 'magenta',
+				stroke: 'black',
+				background: 'grey',
+				target: 'OSC',
+				key: buttonKey,
+				onvaluechange : function() {
+				}
+			});
+		 	page3.add(myButton[i]);
+		 	++index;
+		}
+	}
+
+	page3.background = 'black';
+
+// ------------------------------------------------------------------
+	
+	var pages = [ page1, page2, page3 ], currentPage;
+
+	var $ = Interface.get$()
+
+	switchPage = function( page ) {
+		if( page !== currentPage ) {
+		    page.active = true
+		    page.container.show()
+		    
+		    for( var i = 0; i < pages.length; i++ ) {
+		      var otherPage = pages[ i ]
+		      
+		      if( otherPage === page ) continue;
+		      
+		      otherPage.active = false
+		      otherPage.container.hide()
+		      otherPage.refresh()
+		    }
+		    
+		    currentPage = page
+	  	}
+	}
+
+	var buttonDiv = $('<div>').css({ 
+		  position:'absolute',
+		  top:$(window).height() * .9,
+		  left:0,
+		  width:$(window).width(),
+		  height:$(window).height() * .1,
+		  background:'white'
+		})
+	
+	$('body').append( buttonDiv )
+	
+	var buttonPanel = new Interface.Panel({ container:buttonDiv }),
+		    pageNumber = 0
+	var prevBtn = new Interface.Button({
+		  bounds:[0,0,.5,1],
+		  label:'previous page',
+		  mode:'contact',
+		  fill: 'grey',
+		  stroke: pageButtonColor,
+		  ontouchmouseup: function() {
+		    pageNumber -= 1
+		    if( pageNumber < 0 ) pageNumber = pages.length - 1
+		    
+		    switchPage( pages[ pageNumber ] )
+		  }
+	})
+	
+	var nextBtn = new Interface.Button({
+	  bounds:[.5,0,.5,1],
+	  label:'next page',
+	  mode:'contact',
+	  color: pageButtonColor,
+  	  stroke: pageButtonColor,
+	  ontouchmouseup: function() {
+	    pageNumber += 1
+	    pageNumber = pageNumber % pages.length
+	    
+	    switchPage( pages[ pageNumber ] )
+	  }
+	})
+	
+	buttonPanel.add( prevBtn, nextBtn )
+	
+	switchPage( page1 )
+
+  </script>
+</body>
+</html>
