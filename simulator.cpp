@@ -535,10 +535,6 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             target = 7;
         } else if (k.key() == '8') {
             target = 8;
-        } else if (k.key() == 'v') {
-            target = 9;
-        } else if (k.key() == 'r') {
-            target = 0;
         } else if (k.key() == ' ') {
             target = 10;
         } else if (k.key() == '-') {
@@ -643,7 +639,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             cout << "rotation amount: " << rotAmount << endl;
         } else if (k.key() == '.') {
             rotAmount += 0.005;
-            cout << "rotation amount: " << rotAmount << endl;
+            cout << "rotation amount: " << rotAmount << end;
         } else if (k.key() == ';') {
             for (int i=0; i<myModels[modelIndex].nTracks; ++i)
                 myModels[modelIndex].myTracks[i].drawAmps = false;
