@@ -639,7 +639,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             cout << "rotation amount: " << rotAmount << endl;
         } else if (k.key() == '.') {
             rotAmount += 0.005;
-            cout << "rotation amount: " << rotAmount << end;
+            cout << "rotation amount: " << rotAmount << endl;
         } else if (k.key() == ';') {
             for (int i=0; i<myModels[modelIndex].nTracks; ++i)
                 myModels[modelIndex].myTracks[i].drawAmps = false;
