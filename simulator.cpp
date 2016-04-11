@@ -478,12 +478,12 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
         float trigInSeconds = trigger/float(sr);
         float s = 0;
-        float rev_s1, rev_s2;
+//        float rev_s1, rev_s2;
 
-        reverb.bandwidth(0.5);		// Low-pass amount on input, in [0,1]
-        reverb.damping(0.9);		// High-frequency damping, in [0,1]
-        reverb.decay(0.9);			// Tail decay factor, in [0,1]
-        reverb.diffusion(0.76, 0.666, 0.707, 0.571);
+//        reverb.bandwidth(0.5);		// Low-pass amount on input, in [0,1]
+//        reverb.damping(0.9);		// High-frequency damping, in [0,1]
+//        reverb.decay(0.9);			// Tail decay factor, in [0,1]
+//        reverb.diffusion(0.76, 0.666, 0.707, 0.571);
 
         pollOSC();
 
@@ -501,8 +501,8 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                     }
                 // add each agent's sound output to global output
                 s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
-                reverb(s, rev_s1, rev_s2);
-                tap[i].writeSample((s*0.75+rev_s1*20.0));
+//                reverb(s, rev_s1, rev_s2);
+                tap[i].writeSample((s));
             }
             trigger = ++trigger % (4 * sr);
             isTrigger = false;
