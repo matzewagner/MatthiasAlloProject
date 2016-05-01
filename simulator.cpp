@@ -1,4 +1,9 @@
 // simulator.cpp
+// simulator.cpp
+
+
+// the parameters
+
 
 #include "allocore/io/al_App.hpp"
 #include "Cuttlebone/Cuttlebone.hpp"
@@ -39,7 +44,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     cuttlebone::Maker<State, 9000> maker;
     State* state;
 
-    Mesh ear;
+//    Mesh ear;
     Light light;
     double time = 0;
     int trigger = 0;
@@ -66,7 +71,6 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     LorisModel myModels[NUM_MODELS];
     int modelIndex;
     SoundSource tap[1000];
-
     int numTracks = 100;
 
     Sim() : maker(Simulator::defaultBroadcastIP()),
@@ -74,16 +78,16 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, modelName
             myModels{
 //            {"Piano_A4.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
-            {filePath[0], 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA3Model"}, // good
-            {filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
+            { filePath[0], 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA3Model"}, // good
+//            {filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
 //            {"Violin_A4_noVib.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violinA4noVibModel"}, // ok
 //            {"Harpsichord_A4.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.1, 50, 15000, 100, "harpsichordA4Model"}, // needs work
-            {filePath[2], 3.0, 440, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "trumpetA4Model"}, // ok
+//            {filePath[2], 3.0, 440, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "trumpetA4Model"}, // ok
 //            {filePath[2], 3.0, 440, 44100, 0.3, 0.2, 0.008, 0.9, -100, 0.05, 50, 15000, 100, "trumpetA3Model"}, // ok
 //            {"Soprano_328Hz.aiff", 2.5, 330, 44100, 0.05, 0.3, 0.008, 0.9, -120, 0.05, 50, 3900, 100, "sopranoModel"}, // needs work
-            {filePath[3], 3.0, 220, 44100, 0.2, 0.2, 0.016, 0.5, -120, 0.05, 50, 15000, 100, "fluteA4Model"}, // good
+//            {filePath[3], 3.0, 220, 44100, 0.2, 0.2, 0.016, 0.5, -120, 0.05, 50, 15000, 100, "fluteA4Model"}, // good
 //            {"Flute_A4_close.aiff", 3.0, 440, 44100, 0.1, 0.2, 0.016, 0.5, -150, 0.05, 50, 15000, 100, "fluteModel"}, // good
 //            {"Clarinet_A4_exp.aiff", 2.5, 440, 44100, 0.1, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "clarinetModel"}, // ok
 //            {"Clarinet_A4_noVib.aiff", 2.5, 443, 44100, 0.2, 0.1, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "clarinetModel"}, // good
@@ -109,9 +113,9 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         // turn this off to preserve performance
         scene()->usePerSampleProcessing(false);
 
-        addSphere(ear);
-        ear.primitive(Graphics::TRIANGLES);
-        ear.generateNormals();
+//        addSphere(ear);
+//        ear.primitive(Graphics::TRIANGLES);
+//        ear.generateNormals();
 
         state->colorGain = 300;
         state->frame = 0;
@@ -127,9 +131,9 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             for (int i=0; i<myModels[j].myTracks.size(); ++i) {
                 tap[i].dopplerType(DOPPLER_NONE);
                 tap[i].useAttenuation(true);
-                tap[i].law(ATTEN_INVERSE_SQUARE);
-                tap[i].attenuation(2);
-                tap[i].nearClip(5.0);
+//                tap[i].law(ATTEN_INVERSE_SQUARE);
+//                tap[i].attenuation(2);
+//                tap[i].nearClip(5.0);
 
                 float wallScaler = 1.0;
                 x = i % int(sqrt(myModels[j].myTracks.size()));
@@ -167,7 +171,6 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             scene()->addSource(tap[i]);
         }
-
     }
 
     void pollOSC() {
@@ -468,22 +471,18 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     virtual void onSound(AudioIOData &io) {
 
-        static cuttlebone::Stats fps("onSound()");
-        fps(AlloSphereAudioSpatializer::audioIO().secondsPerBuffer());
+//        static cuttlebone::Stats fps("onSound()");
+//        fps(AlloSphereAudioSpatializer::audioIO().secondsPerBuffer());
 
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             // calculate each agent's audio position
             tap[i].pose(Pose(myModels[modelIndex].myTracks[i].rotatedPosition, Quatf()));
         }
 
+
+
         float trigInSeconds = trigger/float(sr);
         float s = 0;
-//        float rev_s1, rev_s2;
-
-//        reverb.bandwidth(0.5);		// Low-pass amount on input, in [0,1]
-//        reverb.damping(0.9);		// High-frequency damping, in [0,1]
-//        reverb.decay(0.9);			// Tail decay factor, in [0,1]
-//        reverb.diffusion(0.76, 0.666, 0.707, 0.571);
 
         pollOSC();
 
@@ -501,16 +500,15 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                     }
                 // add each agent's sound output to global output
                 s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
-//                reverb(s, rev_s1, rev_s2);
                 tap[i].writeSample((s));
             }
+
             trigger = ++trigger % (4 * sr);
             isTrigger = false;
         }
 
-
         listener()->pose(nav());
-        //listener()->pos(0,0,0.1);
+//        listener()->pos(0,0,0.1);
         scene()->render(io);
     }
 
@@ -667,6 +665,7 @@ int main(){
 
     ParameterServer paramServer;
     registerParams(paramServer);
+
 
     Sim sim;
     sim.AlloSphereAudioSpatializer::audioIO().start();

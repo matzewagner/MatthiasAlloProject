@@ -11,8 +11,6 @@ struct Track {
 
     Quatf myRotator;
     gam::Sine<> osc, aMod, fMod;
-    gam::NoiseWhite<> white;
-    gam::Reson<> resFilt;
     Mesh freqEnv, ampEnv;
     Mesh playHead;
     Mesh box;
@@ -41,6 +39,7 @@ struct Track {
     float duration;
     float nSamples;
     float sampleStep, freqToY, freqFactor, ampFactor;
+    float s;
 
     vector<double> m_freqs;
     vector<double> m_amps;
@@ -115,10 +114,11 @@ struct Track {
         AMFreq = 0.0;
         FMAmount = 0.0;
         aMod.phase(1.0/float(M_PI*0.5));
+
     }
 
     void onAnimate(double dt) {
-        colorScaler = pow(abs(onSound()),1)*300;
+        colorScaler = pow(abs(s),1)*300;
         if (drawAmps)
             trackColor = RGB( offColor + (1.0 * colorScaler), offColor+0.1 + (0.5 * colorScaler), offColor + (0.5 * colorScaler));
         else
@@ -189,10 +189,10 @@ struct Track {
     }
 
     float onSound() {
-        float s;
         if (play) {
+            currentAmp = 0.5;
             currentFreq = next(m_freqs, sampleIndex);
-//            osc.phase(next(m_phases, sampleIndex));
+            osc.phase(next(m_phases, sampleIndex));
             osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
             currentAmp = next(m_amps, sampleIndex);
             ++sampleIndex;
@@ -202,7 +202,7 @@ struct Track {
                 osc.phase(next(m_phases, 0.0));
                 aMod.phase(1.0/(M_PI*0.5));
             }
-            s = (osc()*oscAmount*((aMod(AMFreq)*0.5)+0.5)/*+(resFilt(white())*noiseAmount)*/)*currentAmp*gainScaler*mute;
+            s = (osc()*(aMod(AMFreq)*0.5)+0.5)*currentAmp*gainScaler*mute;
             if (s >= 0.99) s = 0.99;
             else if (s <= -0.99) s = -0.99;
             return s;
