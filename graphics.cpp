@@ -15,7 +15,7 @@ struct Gra : OmniStereoGraphicsRenderer {
   unsigned short g_ModelIndex;
   double timeFlag = 0;
 
-  Mesh freqEnv;
+  Mesh freqEnv[N_TRACKS];
   // Mesh ampEnv;
   // Mesh playHead;
   // Mesh box;
@@ -28,7 +28,9 @@ struct Gra : OmniStereoGraphicsRenderer {
     // addSphere(ball);
     // ball.primitive(Graphics::TRIANGLES);
     // ball.generateNormals();
-    freqEnv.primitive(Graphics::LINE_STRIP);
+    for (int i=0; i<N_TRACKS; ++i) {
+    	freqEnv[i].primitive(Graphics::LINE_STRIP);
+    }
     // ampEnv.primitive(Graphics::LINE_STRIP);
 
 
@@ -40,11 +42,13 @@ struct Gra : OmniStereoGraphicsRenderer {
   	if (timeFlag < 2.0) {
   				for (int i=0; i < NUM_MODELS-3; ++i) {
     		for (int j=0; j < N_TRACKS; ++j) {
-    			for (int k=0; k < state->g_Models[g_ModelIndex].g_Tracks[j].nSamples/4410.0; ++k) {
-    				freqEnv.vertex(k/10.0, 0, 0);
+    			cout << "J; " << state->g_Models[i].g_Tracks[j].nSamples << endl;
+    			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/4410.0; ++k) {
+    				float xVert = k*0.1;
+    				freqEnv[j].vertex(xVert, 0, 0);
+    				cout << "xVert: " << xVert << endl;
     				// ampEnv.vertex(i, 0, 0);
     			}
-    			// cout << "J; " << state->g_Models[i].g_Tracks[j].nSamples << endl;
     		}
     		// cout << "I: " << state->g_Models[i].numTracks << endl;
     	}
@@ -76,7 +80,7 @@ struct Gra : OmniStereoGraphicsRenderer {
       g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].position);
       g.color(agentColor[i]);
       g.scale(1.0);
-      g.draw(freqEnv);
+      g.draw(freqEnv[i]);
       g.popMatrix(); 
     }
 
