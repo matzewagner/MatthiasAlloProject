@@ -1,5 +1,4 @@
 // simulator.cpp
-// simulator.cpp
 
 
 // the parameters
@@ -32,7 +31,6 @@
 using namespace al;
 using namespace std;
 
-#define NUM_MODELS 4
 
 osc::Send sender(9010, "127.0.0.1");
 
@@ -124,6 +122,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         state->eyeSeparation = 0.03;
         state->bgColor = Color(0.0, 1.0);
 
+
         for (int j=0; j<NUM_MODELS; ++j) {
             sort(myModels[j].myTracks.begin(), myModels[j].myTracks.end(), featureCompare("freqAverage"));
 
@@ -135,6 +134,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 //                tap[i].attenuation(2);
 //                tap[i].nearClip(5.0);
 
+				// set positions for individual tracks
                 float wallScaler = 1.0;
                 x = i % int(sqrt(myModels[j].myTracks.size()));
                 if (x == 0)
@@ -160,7 +160,14 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                 myModels[j].myTracks[i].hiFreqsClosestPos = Vec3f(0, 0, (15000*freqScaler) - myModels[j].myTracks[i].freqAverage*freqScaler);
 
                 myModels[j].myTracks[i].loudestAwayPos = Vec3f(0, 0, -myModels[j].myTracks[i].level*0.001);
+
+                // set state values for individual tracks
+                state->g_Models[j].g_Tracks[i].offColor = myModels[j].myTracks[i].offColor;
+                state->g_Models[j].g_Tracks[i].nSamples = myModels[j].myTracks[i].nSamples;
+                state->g_Models[j].g_Tracks[i].sampleStep = myModels[j].myTracks[i].sampleStep;
+                state->g_Models[j].g_Tracks[i].colorScaler = myModels[j].myTracks[i].colorScaler;
             }
+            state->g_Models[j].numTracks = myModels[j].nTracks;
             sr = myModels[modelIndex].sr;
         }
 
@@ -361,10 +368,6 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         static cuttlebone::Stats fps("Agent::step");
         fps(dt);
 
-        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-
-        }
-
         // use 'time' to lerp between positions
         time += dt*0.25;
         if (time > 1) { time = 1; }
@@ -372,8 +375,8 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             myModels[modelIndex].myTracks[i].rotAngle += rotAmount;
             myModels[modelIndex].myTracks[i].onAnimate(dt);
-            state->g_Tracks[i].position = myModels[modelIndex].myTracks[i].rotatedPosition;
-            state->g_Tracks[i].sample = myModels[modelIndex].myTracks[i].onSound();
+            state->g_Models[modelIndex].g_Tracks[i].position = myModels[modelIndex].myTracks[i].rotatedPosition;
+            state->g_Models[modelIndex].g_Tracks[i].sample = myModels[modelIndex].myTracks[i].onSound();
         }
 
 
@@ -464,6 +467,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         if (rotator >= 2*M_PI)
             rotator -= 2*M_PI;
         // update other state values
+        state->modelIndex = modelIndex;
         state->frame++;
         state->pose = nav();
         maker.set(*state);
@@ -476,7 +480,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             // calculate each agent's audio position
-            tap[i].pose(Pose(myModels[modelIndex].myTracks[i].rotatedPosition, Quatf()));
+            // tap[i].pose(Pose(myModels[modelIndex].myTracks[i].rotatedPosition, Quatf()));
+            tap[i].pos(myModels[modelIndex].myTracks[i].rotatedPosition[0],
+            			myModels[modelIndex].myTracks[i].rotatedPosition[1],
+            			myModels[modelIndex].myTracks[i].rotatedPosition[2]);
         }
 
 

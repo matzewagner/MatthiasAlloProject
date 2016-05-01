@@ -16,7 +16,7 @@ struct Track {
     Mesh box;
     Color trackColor, playHeadColor, selectedColor;
     float offColor;
-    float colorScaler;
+    float audioColor, colorScaler;
     float gainScaler, mute;
     float AMFreq, FMFreq, FMAmount;
     float oscAmount, noiseAmount;
@@ -95,6 +95,7 @@ struct Track {
         playHeadPosition = Vec3f(0, 0, 0);
 
         offColor = 0.25;
+        colorScaler = 300;
         playHeadColor = RGB(0, 0.75, 1.0);
         selectedColor = RGB(0.5, 0.0, 0.5);
         oscAmount = 1.0;
@@ -118,11 +119,11 @@ struct Track {
     }
 
     void onAnimate(double dt) {
-        colorScaler = pow(abs(s),1)*300;
+        audioColor = pow(abs(s),1)*colorScaler;
         if (drawAmps)
-            trackColor = RGB( offColor + (1.0 * colorScaler), offColor+0.1 + (0.5 * colorScaler), offColor + (0.5 * colorScaler));
+            trackColor = RGB( offColor + (1.0 * audioColor), offColor+0.1 + (0.5 * audioColor), offColor + (0.5 * audioColor));
         else
-            trackColor = RGB( offColor + (1.0 * colorScaler), offColor + (0.5 * colorScaler), offColor + (0.5 * colorScaler));
+            trackColor = RGB( offColor + (1.0 * audioColor), offColor + (0.5 * audioColor), offColor + (0.5 * audioColor));
 
         selectedColor = RGB(0.5, 0.1, 0.5);
 
