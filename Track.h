@@ -162,7 +162,6 @@ struct Track {
     void onDraw(Graphics& g) {
         g.pushMatrix();
         g.color(trackColor);
-        g.translate(0, 0, 0);
         if (selected && drawSelected) {
             g.color(selectedColor);
             g.draw(box);

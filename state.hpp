@@ -2,7 +2,7 @@
 #define STATE_HPP
 
 #define L 10
-#define NUM_MODELS 4
+#define NUM_MODELS 2
 #define N_TRACKS 100
 
 struct g_Track {
@@ -11,6 +11,7 @@ struct g_Track {
     Vec3f playHeadPosition;
     float sample;
     bool play;
+    bool selected;
     
     // values to be sent only once
     int nSamples;
@@ -26,7 +27,7 @@ struct g_Model {
 
 struct State {
     Pose pose;
-    g_Model g_Models[NUM_MODELS-3];
+    g_Model g_Models[NUM_MODELS];
     unsigned short modelIndex;
     double eyeSeparation, nearClip, farClip;
     float audioGain, gainScaler, colorGain;

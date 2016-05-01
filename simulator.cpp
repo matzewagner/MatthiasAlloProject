@@ -27,10 +27,8 @@
 #include "LorisModel.h"
 #include "params.h"
 
-
 using namespace al;
 using namespace std;
-
 
 osc::Send sender(9010, "127.0.0.1");
 
@@ -77,15 +75,15 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             myModels{
 //            {"Piano_A4.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
             { filePath[0], 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA3Model"}, // good
-//            {filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
+           {filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
 //            {"Violin_A4_noVib.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violinA4noVibModel"}, // ok
 //            {"Harpsichord_A4.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.1, 50, 15000, 100, "harpsichordA4Model"}, // needs work
 //            {filePath[2], 3.0, 440, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "trumpetA4Model"}, // ok
-//            {filePath[2], 3.0, 440, 44100, 0.3, 0.2, 0.008, 0.9, -100, 0.05, 50, 15000, 100, "trumpetA3Model"}, // ok
+           // {filePath[2], 3.0, 440, 44100, 0.3, 0.2, 0.008, 0.9, -100, 0.05, 50, 15000, 100, "trumpetA3Model"}, // ok
 //            {"Soprano_328Hz.aiff", 2.5, 330, 44100, 0.05, 0.3, 0.008, 0.9, -120, 0.05, 50, 3900, 100, "sopranoModel"}, // needs work
-//            {filePath[3], 3.0, 220, 44100, 0.2, 0.2, 0.016, 0.5, -120, 0.05, 50, 15000, 100, "fluteA4Model"}, // good
+           // {filePath[3], 3.0, 220, 44100, 0.2, 0.2, 0.016, 0.5, -120, 0.05, 50, 15000, 100, "fluteA4Model"}, // good
 //            {"Flute_A4_close.aiff", 3.0, 440, 44100, 0.1, 0.2, 0.016, 0.5, -150, 0.05, 50, 15000, 100, "fluteModel"}, // good
 //            {"Clarinet_A4_exp.aiff", 2.5, 440, 44100, 0.1, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "clarinetModel"}, // ok
 //            {"Clarinet_A4_noVib.aiff", 2.5, 443, 44100, 0.2, 0.1, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "clarinetModel"}, // good
@@ -182,7 +180,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     void pollOSC() {
 
-        globalAmp = globalGain.get()*50;
+        globalAmp = globalGain.get()*10;
 
         if (model0.get() == 1.0 && currentModel != 0) {
             if (NUM_MODELS <= 0)
@@ -229,26 +227,36 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         soloSelected = solo.get();
         muteSelected = mute.get();
 
+        // unselect all tracks
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             myModels[modelIndex].myTracks[i].selected = false;
-            if (soloSelected)
+            state->g_Models[modelIndex].g_Tracks[i].selected = false;
+            if (soloSelected) {
                 myModels[modelIndex].myTracks[i].mute = 0.0;
-            else
+            }
+            else {
                 myModels[modelIndex].myTracks[i].mute = 1.0;
+            }
 
-            if (drawSelected.get() == 1.0)
+            if (drawSelected.get() == 1.0) {
                 myModels[modelIndex].myTracks[i].drawSelected = true;
-            else
+            }
+            else {
                 myModels[modelIndex].myTracks[i].drawSelected = false;
+            }
         }
 
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             if (trackSelector[i]->get() == 1.0) {
                 myModels[modelIndex].myTracks[i].selected = true;
-                if (muteSelected)
+                state->g_Models[modelIndex].g_Tracks[i].selected = true;
+                if (muteSelected) {
                     myModels[modelIndex].myTracks[i].mute = 0.0;
-                else
+                }
+                else {
                     myModels[modelIndex].myTracks[i].mute = 1.0;
+                }
+
                 myModels[modelIndex].myTracks[i].gainScaler = amp.get()*50.0;
                 myModels[modelIndex].myTracks[i].AMFreq = amFreq.get()*1000;
                 myModels[modelIndex].myTracks[i].FMFreq = fmFreq.get()*1000;
@@ -666,7 +674,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 int main(){
     SearchPaths myPath;
     myPath.addAppPaths();
-    string fileName[NUM_MODELS] = {"Piano_A3.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Flute_A4.aiff"};
+    string fileName[] = {"Piano_A3.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Flute_A4.aiff"};
     for (int i=0; i<NUM_MODELS; ++i) {
         filePath[i] = myPath.find(fileName[i]).filepath();
         cout << "\nfile path " << i << ": " << filePath[i] << endl;

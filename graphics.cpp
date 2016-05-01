@@ -17,19 +17,18 @@ struct Gra : OmniStereoGraphicsRenderer {
 
   Mesh freqEnv[N_TRACKS];
   Mesh playHead;
+  Mesh box;
 
   Vec3f playHeadPosition;
-  // Mesh box;
-  // Mesh ball;
+  float boxWidth[NUM_MODELS][N_TRACKS];
+  
   Color agentColor[N_TRACKS];
   Color playHeadColor;
+  Color selectedColor;
 
   Gra() {
     state = new State;
 
-    // addSphere(ball);
-    // ball.primitive(Graphics::TRIANGLES);
-    // ball.generateNormals();
     for (int i=0; i<N_TRACKS; ++i) {
     	freqEnv[i].primitive(Graphics::LINE_STRIP);
     }
@@ -39,15 +38,18 @@ struct Gra : OmniStereoGraphicsRenderer {
     playHead.vertex(0, -0.05, 0);
     playHeadPosition = Vec3f(0, 0, 0);
     playHeadColor = RGB(0, 0.75, 1.0);
+
+    box.primitive(Graphics::LINES);
+    selectedColor = RGB(0.5, 0, 0.5);
   }
 
   virtual ~Gra() {}
 
   virtual void onAnimate(double dt) {
-  	if (timeFlag < 2.0) {
-  				for (int i=0; i < NUM_MODELS-3; ++i) {
+  	if (timeFlag < 0.5) {
+			for (int i=0; i < NUM_MODELS; ++i) {
     		for (int j=0; j < N_TRACKS; ++j) {
-    			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/441; ++k) {
+    			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/441.0; ++k) {
     				float xVert = k*0.01;
     				freqEnv[j].vertex(xVert, 0, 0);
     			}
@@ -68,6 +70,26 @@ struct Gra : OmniStereoGraphicsRenderer {
                               state->g_Models[g_ModelIndex].g_Tracks[i].offColor + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5)
                               );
       }
+
+      box.reset();
+
+      
+      for (int i=0; i < NUM_MODELS; ++i) {
+        for (int j=0; j < N_TRACKS; ++j) {
+            if (state->g_Models[g_ModelIndex].g_Tracks[i].selected) {
+              boxWidth[i][j] = state->g_Models[g_ModelIndex].g_Tracks[i].nSamples/44100.0;
+              float boxHeight = 0.1;
+              box.vertex(0, boxHeight, 0);
+              box.vertex(boxWidth[i][j], boxHeight, 0);
+              box.vertex(boxWidth[i][j], boxHeight, 0);
+              box.vertex(boxWidth[i][j], -boxHeight, 0);
+              box.vertex(boxWidth[i][j], -boxHeight, 0);
+              box.vertex(0, -boxHeight, 0);
+              box.vertex(0, -boxHeight, 0);
+              box.vertex(0, boxHeight, 0);
+        }
+      }
+    }
     state->print();
     timeFlag += dt;
   }
@@ -88,6 +110,10 @@ struct Gra : OmniStereoGraphicsRenderer {
 	      g.draw(playHead);
 	      g.popMatrix();
   	  }
+      if (state->g_Models[g_ModelIndex].g_Tracks[i].selected) {
+        g.color(selectedColor);
+        g.draw(box);
+      }
       g.popMatrix(); 
 
     }
