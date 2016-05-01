@@ -8,7 +8,9 @@
 struct g_Track {
 	// values to be sent continuously
     Vec3f position;
+    Vec3f playHeadPosition;
     float sample;
+    bool play;
     
     // values to be sent only once
     int nSamples;

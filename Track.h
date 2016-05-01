@@ -90,6 +90,7 @@ struct Track {
                         ((m_freqs[0]*freqFactor - freqToY)+m_amps[i]),
                         0);
         }
+        
         playHead.vertex(0, 0.02, 0);
         playHead.vertex(0, -0.02, 0);
         playHeadPosition = Vec3f(0, 0, 0);

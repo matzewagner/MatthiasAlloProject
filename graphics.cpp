@@ -16,11 +16,13 @@ struct Gra : OmniStereoGraphicsRenderer {
   double timeFlag = 0;
 
   Mesh freqEnv[N_TRACKS];
-  // Mesh ampEnv;
-  // Mesh playHead;
+  Mesh playHead;
+
+  Vec3f playHeadPosition;
   // Mesh box;
   // Mesh ball;
-  Color agentColor[N_TRACKS]; 
+  Color agentColor[N_TRACKS];
+  Color playHeadColor;
 
   Gra() {
     state = new State;
@@ -31,9 +33,12 @@ struct Gra : OmniStereoGraphicsRenderer {
     for (int i=0; i<N_TRACKS; ++i) {
     	freqEnv[i].primitive(Graphics::LINE_STRIP);
     }
-    // ampEnv.primitive(Graphics::LINE_STRIP);
-
-
+    
+    playHead.primitive(Graphics::LINE_STRIP);
+    playHead.vertex(0, 0.05, 0);
+    playHead.vertex(0, -0.05, 0);
+    playHeadPosition = Vec3f(0, 0, 0);
+    playHeadColor = RGB(0, 0.75, 1.0);
   }
 
   virtual ~Gra() {}
@@ -42,15 +47,11 @@ struct Gra : OmniStereoGraphicsRenderer {
   	if (timeFlag < 2.0) {
   				for (int i=0; i < NUM_MODELS-3; ++i) {
     		for (int j=0; j < N_TRACKS; ++j) {
-    			cout << "J; " << state->g_Models[i].g_Tracks[j].nSamples << endl;
-    			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/4410.0; ++k) {
-    				float xVert = k*0.1;
+    			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/441; ++k) {
+    				float xVert = k*0.01;
     				freqEnv[j].vertex(xVert, 0, 0);
-    				cout << "xVert: " << xVert << endl;
-    				// ampEnv.vertex(i, 0, 0);
     			}
     		}
-    		// cout << "I: " << state->g_Models[i].numTracks << endl;
     	}
   		cout << "Built graphics agents" << endl;
   	}
@@ -66,7 +67,6 @@ struct Gra : OmniStereoGraphicsRenderer {
                               state->g_Models[g_ModelIndex].g_Tracks[i].offColor + 0.1 + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5), 
                               state->g_Models[g_ModelIndex].g_Tracks[i].offColor + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5)
                               );
-      	          // agentColor[i] = RGB(1, 1, 1);
       }
     state->print();
     timeFlag += dt;
@@ -81,7 +81,15 @@ struct Gra : OmniStereoGraphicsRenderer {
       g.color(agentColor[i]);
       g.scale(1.0);
       g.draw(freqEnv[i]);
+      if (state->g_Models[g_ModelIndex].g_Tracks[i].play) {
+	      g.pushMatrix();
+	      g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].playHeadPosition[0], 0);
+	      g.color(playHeadColor);
+	      g.draw(playHead);
+	      g.popMatrix();
+  	  }
       g.popMatrix(); 
+
     }
 
     shader().uniform("lighting", 0.0);
