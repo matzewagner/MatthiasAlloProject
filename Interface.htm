@@ -15,6 +15,9 @@
 	var page3 = new Interface.Panel({
 		useRelativeSizesAndPositions: true,
 	});
+	var page4 = new Interface.Panel({
+		useRelativeSizesAndPositions: true,
+	});
 
 	var slider_thickness = 0.075;
 	var buttonWidth = 0.1;
@@ -482,14 +485,112 @@
 		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*0, slider_length, slider_thickness],
 		label: 'rotation',
 		isVertical:false,
-		value: 0,
+		value: 0.5,
 		fill: 'orange',
 		stroke: 'black',
 		background: sliderBackgroundColor,
 		target: 'OSC',
 		key: '/Rotation',
 		onvaluechange : function() {
-			rotL.setValue( (this.value*10).toFixed(3) );
+			rotL.setValue( ((this.value)-0.5).toFixed(3) );
+		}
+	});
+
+	var rotXL = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*1 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var rotXS = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*1, slider_length, slider_thickness],
+		label: 'x rotation',
+		isVertical:false,
+		value: 0.5,
+		fill: 'orange',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/XRotation',
+		onvaluechange : function() {
+			rotXL.setValue( ((this.value*10)-5).toFixed(3) );
+		}
+	});
+	var rotYL = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*2 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var rotYS = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*2, slider_length, slider_thickness],
+		label: 'y rotation',
+		isVertical:false,
+		value: 0.5,
+		fill: 'orange',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/YRotation',
+		onvaluechange : function() {
+			rotYL.setValue( ((this.value*10)-5).toFixed(3) );
+		}
+	});
+	var rotZL = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*3 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var rotZS = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*3, slider_length, slider_thickness],
+		label: 'z rotation',
+		isVertical:false,
+		value: 0.5,
+		fill: 'orange',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/ZRotation',
+		onvaluechange : function() {
+			rotZL.setValue( ((this.value*10)-5).toFixed(3) );
+		}
+	});
+
+	var rotAccum = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*4, .1, slider_thickness],
+		label: 'accum. rotation',
+		isVertical:false,
+		value:0,
+		fill: 'green',
+		stroke: sliderStrokeColor,
+		background: 'teal',
+		target: 'OSC',
+		key:'/AccumRotation'
+	});
+	var rotReset = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*1 + margin*1, (extra_y_margin*1) + (slider_thickness+margin)*4, .1, slider_thickness],
+		label: 'reset rotation',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'red',
+		target: 'OSC',
+		key:'/ResetRotation',
+		onvaluechange : function() {
+			rotS.setValue( (0.5) );
+			rotL.setValue( (0) );
+			rotXS.setValue( (0.5) );
+			rotXL.setValue( (0) );
+			rotYS.setValue( (0.5) );
+			rotYL.setValue( (0) );
+			rotZS.setValue( (0.5) );
+			rotZL.setValue( (0) );
 		}
 	});
 
@@ -623,7 +724,10 @@
 	});
 
 	page2.background = 'black';
-	page2.add(model0, model1, model2, model3, model4, model5, model6, 
+	page2.add(rotL, rotXL, rotYL, rotZL,
+			  rotS, rotXS, rotYS, rotZS,
+			  rotAccum, rotReset,
+			  model0, model1, model2, model3, model4, model5, model6, 
 			  model7);
 
 //-------------------------------------------------------------------
@@ -636,7 +740,7 @@
 	var index = 0;
 	for (var j=0; j<columns; ++j) {
 		for (var i=0; i<rows; ++i) {
-			var buttonKey = '/Select'+index;
+			var selectButtonKey = '/Select'+index;
 			 myButton[i] = new Interface.Button({
 				bounds:[j/rows, i*(0.9/rows), .1, 0.9/rows],
 				label: index,
@@ -646,7 +750,7 @@
 				stroke: 'black',
 				background: 'grey',
 				target: 'OSC',
-				key: buttonKey,
+				key: selectButtonKey,
 				onvaluechange : function() {
 				}
 			});
@@ -657,9 +761,41 @@
 
 	page3.background = 'black';
 
+//-------------------------------------------------------------------
+	
+
+	var myButton = [];
+	var numButtons = 100;
+	var columns = 10;
+	var rows = 10;
+	var index = 0;
+	for (var j=0; j<columns; ++j) {
+		for (var i=0; i<rows; ++i) {
+			var triggerButtonKey = '/Trigger'+index;
+			 myButton[i] = new Interface.Button({
+				bounds:[j/rows, i*(0.9/rows), .1, 0.9/rows],
+				label: index,
+				mode: 'momentary',
+				isVertical:false,
+				value:0,
+				fill: 'olive',
+				stroke: 'black',
+				background: 'brown',
+				target: 'OSC',
+				key: triggerButtonKey,
+				onvaluechange : function() {
+				}
+			});
+		 	page4.add(myButton[i]);
+		 	++index;
+		}
+	}
+
+	page4.background = 'black';
+
 // ------------------------------------------------------------------
 	
-	var pages = [ page1, page2, page3 ], currentPage;
+	var pages = [ page1, page2, page3, page4 ], currentPage;
 
 	var $ = Interface.get$()
 

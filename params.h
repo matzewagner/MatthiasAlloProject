@@ -50,14 +50,21 @@ Parameter velocity("VelocityScaler", "", 0);
 Parameter scaler("Scaler", "", 0.1);
 
 std::vector<Parameter *> trackSelector;
+std::vector<Parameter *> trackTrigger;
 
 
 void registerParams(ParameterServer& paramServer) {
 
     for (int i=0; i<NUMPARAMS; ++i) {
-        string paramKey = "Select" + to_string(int(i));
-        Parameter *newParam = new Parameter(paramKey, "", 0);
+        string selectParamKey = "Select" + to_string(int(i));
+        Parameter *newParam = new Parameter(selectParamKey, "", 0);
         trackSelector.push_back(newParam);
+        paramServer.registerParameter(*newParam);
+    }
+    for (int i=0; i<NUMPARAMS; ++i) {
+        string triggerParamKey = "Trigger" + to_string(int(i));
+        Parameter *newParam = new Parameter(triggerParamKey, "", 0);
+        trackTrigger.push_back(newParam);
         paramServer.registerParameter(*newParam);
     }
 

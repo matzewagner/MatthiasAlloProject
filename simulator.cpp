@@ -268,6 +268,12 @@ void pollOSC() {
             }
         }
 
+        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+            if (trackTrigger[i]->get() == 1.0) {
+                myModels[modelIndex].myTracks[i].trigger = true;
+            }
+        }
+
         if (pullTrigger.get() == 1.0)
             isTrigger = true;
         else
@@ -539,6 +545,7 @@ void pollOSC() {
         pollOSC();
 
         while (io()) {
+
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
                     if (
                             (looper &&
