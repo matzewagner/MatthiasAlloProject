@@ -28,7 +28,7 @@ struct Track {
     Vec3f playHeadPosition;
     float positionScaler;
     bool animate;
-    bool play;
+    bool play, trigger;
     bool drawAmps;
     bool selected, drawSelected;
 
@@ -189,7 +189,21 @@ struct Track {
             return myVector[sIndex];
     }
 
+    void resetPlayhead(float start) {
+        trigger = false;
+        sampleIndex = 0;
+        osc.phase(next(m_phases, start));
+        aMod.phase(1.0/(M_PI*0.5));
+    }
+
     float onSound() {
+        if (trigger && !play) {
+            play = true;
+            trigger = false;
+        } else if(trigger && play) {
+            resetPlayhead(0.0);
+            play = true;
+        }
         if (play) {
             currentAmp = 0.5;
             currentFreq = next(m_freqs, sampleIndex);
@@ -199,9 +213,7 @@ struct Track {
             ++sampleIndex;
             while (sampleIndex >= m_freqs.size()) {
                 play = false;
-                sampleIndex = 0;
-                osc.phase(next(m_phases, 0.0));
-                aMod.phase(1.0/(M_PI*0.5));
+                resetPlayhead(0.0);
             }
             s = (osc()*(aMod(AMFreq)*0.5)+0.5)*currentAmp*gainScaler*mute;
             if (s >= 0.99) s = 0.99;

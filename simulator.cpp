@@ -26,6 +26,7 @@
 #include "Track.h"
 #include "LorisModel.h"
 #include "params.h"
+//#include "pollOSC.h"
 
 using namespace al;
 using namespace std;
@@ -51,8 +52,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     float lineLength = 10.0;
     float xScale = 0.0;
     float manualScaler = 1.0, currentManualScaler = 1.0;
+    float Xrotation = 0, Yrotation = 0, Zrotation = 0;
     float rotator=0.0, rotAmount=0.0;
     float rX=0, rY=0, rZ=0;
+    bool accumRotation = false, resetRotation = false;
     float currentVelocity;
     int currentModel, currentTarget;
     int sr;
@@ -75,7 +78,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             myModels{
 //            {"Piano_A4.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
             { filePath[0], 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA3Model"}, // good
-           {filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
+            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
 //            {"Violin_A4_noVib.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violinA4noVibModel"}, // ok
@@ -176,9 +179,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             scene()->addSource(tap[i]);
         }
+
     }
 
-    void pollOSC() {
+void pollOSC() {
 
         globalAmp = globalGain.get()*10;
 
@@ -340,13 +344,44 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             currentVelocity = velocity.get();
         }
 
-        manualScaler = scaler.get()*10;
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].positionScaler = manualScaler;
+        // rotation
+        rotator = (rotAngle.get()) - 0.5;
+        Xrotation = (rotX.get()*10) - 5.0;
+        Yrotation = (rotY.get()*10) - 5.0;
+        Zrotation = (rotZ.get()*10) - 5.0;
+
+        accumRotation = accRot.get();
+        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+            if (accumRotation) {
+                myModels[modelIndex].myTracks[i].rotAngle += rotator;
+            } else {
+                myModels[modelIndex].myTracks[i].rotAngle = rotator;
             }
-            currentManualScaler = manualScaler;
+            myModels[modelIndex].myTracks[i].rX = Xrotation;
+            myModels[modelIndex].myTracks[i].rY = Yrotation;
+            myModels[modelIndex].myTracks[i].rZ = Zrotation;
+        }
+
+        resetRotation = resetRot.get();
+        if (resetRotation == 1.0) {
+            accRot.set(0.0);
+            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+                myModels[modelIndex].myTracks[i].rotAngle = 0;
+                myModels[modelIndex].myTracks[i].rX = 0;
+                myModels[modelIndex].myTracks[i].rY = 0;
+                myModels[modelIndex].myTracks[i].rZ = 0;
+            }
+        }
+
+        // size scaler
+        manualScaler = scaler.get()*10;
+        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+            myModels[modelIndex].myTracks[i].positionScaler = manualScaler;
+        }
+        currentManualScaler = manualScaler;
 
     }
+
 
     virtual void onCreate(const ViewpointWindow& win) {
         static cuttlebone::Stats fps("onSound()");
@@ -511,9 +546,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                             && trigger <= (myModels[modelIndex].myTracks[i].startTime*sr)+1))
                              || isTrigger
                              ) {
-                        if(!myModels[modelIndex].myTracks[i].play ) {
-                            myModels[modelIndex].myTracks[i].play = true;
-                        }
+                            myModels[modelIndex].myTracks[i].trigger = true;
                     }
                 // add each agent's sound output to global output
                 s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
@@ -672,6 +705,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 };
 
 int main(){
+
     SearchPaths myPath;
     myPath.addAppPaths();
     string fileName[] = {"Piano_A3.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Flute_A4.aiff"};
@@ -683,7 +717,6 @@ int main(){
     ParameterServer paramServer;
     registerParams(paramServer);
 
-
     Sim sim;
     sim.AlloSphereAudioSpatializer::audioIO().start();
     sim.maker.start();
@@ -691,4 +724,3 @@ int main(){
 
     return 0;
 }
-

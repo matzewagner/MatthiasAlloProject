@@ -471,6 +471,28 @@
 
 //-------------------------------------------------------------------
 
+	var rotL = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*0 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var rotS = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*0, slider_length, slider_thickness],
+		label: 'rotation',
+		isVertical:false,
+		value: 0,
+		fill: 'orange',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/Rotation',
+		onvaluechange : function() {
+			rotL.setValue( (this.value*10).toFixed(3) );
+		}
+	});
+
 	var model0 = new Interface.Button({
 		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*7, .1, slider_thickness],
 		label: 'Model 0',

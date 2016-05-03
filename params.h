@@ -37,6 +37,14 @@ Parameter linePos("LinePosition", "", 0);
 Parameter loudestPos("LoudestPosition", "", 0);
 Parameter spherePos("SpherePosition", "", 0);
 
+Parameter rotAngle("Rotation", "", 0.5);
+Parameter rotX("XRotation", "", 0);
+Parameter rotY("YRotation", "", 0);
+Parameter rotZ("ZRotation", "", 0);
+Parameter accRot("AccumRotation", "", 0);
+Parameter resetRot("ResetRotation", "", 0);
+
+
 Parameter animate("Animate", "", 0);
 Parameter velocity("VelocityScaler", "", 0);
 Parameter scaler("Scaler", "", 0.1);
@@ -86,6 +94,13 @@ void registerParams(ParameterServer& paramServer) {
     paramServer.registerParameter(linePos);
     paramServer.registerParameter(loudestPos);
     paramServer.registerParameter(spherePos);
+
+    paramServer.registerParameter(rotAngle);
+    paramServer.registerParameter(rotX);
+    paramServer.registerParameter(rotY);
+    paramServer.registerParameter(rotZ);
+    paramServer.registerParameter(accRot);
+    paramServer.registerParameter(resetRot);
 
     paramServer.registerParameter(animate);
     paramServer.registerParameter(velocity);
