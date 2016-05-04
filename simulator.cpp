@@ -64,6 +64,8 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     bool looper = false;
     bool trackLooper = false;
     bool isTrigger = false;
+    float loopLength = 4.0;
+    float playPosition = 0;
 
 
     gam::SamplePlayer<> loadBuffer;
@@ -187,6 +189,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 void pollOSC() {
 
         globalAmp = globalGain.get()*10;
+        loopLength = loopTime.get()*10;
 
         if (model0.get() == 1.0 && currentModel != 0) {
             if (NUM_MODELS <= 0)
@@ -232,24 +235,41 @@ void pollOSC() {
 
         soloSelected = solo.get();
         muteSelected = mute.get();
+        playPosition = playPos.get()*myModels[modelIndex].duration;
 
         // unselect all tracks
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-            myModels[modelIndex].myTracks[i].selected = false;
-            state->g_Models[modelIndex].g_Tracks[i].selected = false;
-            if (soloSelected) {
-                myModels[modelIndex].myTracks[i].mute = 0.0;
+            // set playhead position
+            myModels[modelIndex].myTracks[i].playPosition = playPosition;
+            if (selectAll.get() == 0) {
+                myModels[modelIndex].myTracks[i].selected = false;
+                state->g_Models[modelIndex].g_Tracks[i].selected = false;
+                if (soloSelected) {
+                    myModels[modelIndex].myTracks[i].mute = 0.0;
+                }
+                else {
+                    myModels[modelIndex].myTracks[i].mute = 1.0;
+                }
             }
-            else {
-                myModels[modelIndex].myTracks[i].mute = 1.0;
+            else if (selectAll.get() == 1.0) {
+                myModels[modelIndex].myTracks[i].selected = true;
             }
-
             if (drawSelected.get() == 1.0) {
                 myModels[modelIndex].myTracks[i].drawSelected = true;
             }
             else {
                 myModels[modelIndex].myTracks[i].drawSelected = false;
             }
+
+        }
+
+        if (selectNone.get() == 1.0) {
+            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+                trackSelector[i]->set(0);
+                myModels[modelIndex].myTracks[i].selected = false;
+                state->g_Models[modelIndex].g_Tracks[i].selected = false;
+            }
+            selectNone.set(0);
         }
 
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
@@ -283,7 +303,12 @@ void pollOSC() {
             }
             if (!trackLooper)
                 trackTrigger[i]->set(0);
+
+            if (looper || isTrigger) {
+                myModels[modelIndex].myTracks[i].trigger = true;
+            }
         }
+
 
         if (pullTrigger.get() == 1.0)
             isTrigger = true;
@@ -558,25 +583,16 @@ void pollOSC() {
         while (io()) {
 
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                    if (
-                            (looper &&
-                            (trigger >= myModels[modelIndex].myTracks[i].startTime*sr
-                            && trigger <= (myModels[modelIndex].myTracks[i].startTime*sr)+1))
-                             || isTrigger
-                             ) {
-                            myModels[modelIndex].myTracks[i].trigger = true;
-                    }
                 // add each agent's sound output to global output
                 s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
                 tap[i].writeSample((s));
             }
 
-            trigger = ++trigger % (4 * sr);
-            isTrigger = false;
+            trigger = fmod(++trigger,(loopLength * sr));
         }
 
         listener()->pose(nav());
-//        listener()->pos(0,0,0.1);
+        // listener()->pos(0,0,0.1);
         scene()->render(io);
     }
 

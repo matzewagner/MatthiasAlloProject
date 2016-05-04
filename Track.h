@@ -68,7 +68,7 @@ struct Track {
         ampFactor = 1.0;
         freqFactor = 0.0005;
         freqToY = m_freqs[0]*freqFactor;
-
+        playPosition = 0;
         rotAngle = 0;
 
         freqEnv.primitive(Graphics::LINE_STRIP);
@@ -199,13 +199,13 @@ struct Track {
     float onSound() {
         if (loopTrack) {
             if (trigger && !play) {
-                resetPlayhead(0);
+                resetPlayhead(playPosition);
                 play = true;
                 trigger = false;
             }
         } else if (!loopTrack) {
             if (trigger) {
-                resetPlayhead(0);
+                resetPlayhead(playPosition);
                 play = true;
                 trigger = false;
             } else {

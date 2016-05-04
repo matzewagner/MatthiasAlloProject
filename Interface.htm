@@ -733,7 +733,7 @@
 //-------------------------------------------------------------------
 	
 
-	var myButton = [];
+	var mySelectButton = [];
 	var numButtons = 100;
 	var columns = 10;
 	var rows = 10;
@@ -741,8 +741,8 @@
 	for (var j=0; j<columns; ++j) {
 		for (var i=0; i<rows; ++i) {
 			var selectButtonKey = '/Select'+index;
-			 myButton[i] = new Interface.Button({
-				bounds:[j/rows, i*(0.9/rows), .1, 0.9/rows],
+			 mySelectButton[i] = new Interface.Button({
+				bounds:[j/rows, i*(0.8/rows), .1, 0.8/rows],
 				label: index,
 				isVertical:false,
 				value:0,
@@ -754,17 +754,46 @@
 				onvaluechange : function() {
 				}
 			});
-		 	page3.add(myButton[i]);
+		 	page3.add(mySelectButton[i]);
 		 	++index;
 		}
 	}
 
+	var selectAll = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*10, .1, slider_thickness],
+		label: 'select all',
+		mode:'toggle',
+		isVertical:false,
+		value:0,
+		fill: 'magenta',
+		stroke: sliderStrokeColor,
+		background: 'grey',
+		target: 'OSC',
+		key:'/LoopTrack',
+		onvaluechange : function() {
+		}
+	});
+	var selectNone = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*1 + margin*1, (extra_y_margin*1) + (slider_thickness+margin)*10, .1, slider_thickness],
+		label: 'select none',
+		mode:'toggle',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'grey',
+		target: 'OSC',
+		key:'/LoopTrack',
+		onvaluechange : function() {
+		}
+	});
+	page3.add(selectAll, selectNone);
 	page3.background = 'black';
 
 //-------------------------------------------------------------------
 	
 
-	var myButton = [];
+	var myTriggerButton = [];
 	var numButtons = 100;
 	var columns = 10;
 	var rows = 10;
@@ -772,41 +801,35 @@
 	for (var j=0; j<columns; ++j) {
 		for (var i=0; i<rows; ++i) {
 			var triggerButtonKey = '/Trigger'+index;
-			 myButton[i] = new Interface.Button({
+			 myTriggerButton[i] = new Interface.Button({
 				bounds:[j/rows, i*(0.8/rows), .1, 0.8/rows],
 				label: index,
-				mode: 'momentary',
+				mode: 'contact',
 				isVertical:false,
 				value:0,
 				fill: 'olive',
 				stroke: 'black',
 				background: 'brown',
 				target: 'OSC',
-				key: triggerButtonKey,
-				onvaluechange : function() {
-				}
+				key: triggerButtonKey
 			});
-		 	page4.add(myButton[i]);
+		 	page4.add(myTriggerButton[i]);
 		 	++index;
 		}
 	}
 
 	var resetTrig = new Interface.Button({
-		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*10, .8, slider_thickness],
-		label: 'Reset Triggers',
-		mode:'momentary',
+		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*10, .1, slider_thickness],
+		label: 'loop track',
+		mode:'toggle',
 		isVertical:false,
 		value:0,
-		fill: 'white',
+		fill: 'lightgreen',
 		stroke: sliderStrokeColor,
-		background: 'pink',
+		background: 'grey',
 		target: 'OSC',
-		key:'/ResetTrigger',
+		key:'/LoopTrack',
 		onvaluechange : function() {
-			for (var i=0; i<numButtons; ++i) {
-				myButton[i].setValue( (0) );
-				myButton[i].sendTargetMessage();
-			}
 		}
 	});
 	page4.add(resetTrig);

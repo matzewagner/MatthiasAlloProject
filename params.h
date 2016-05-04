@@ -23,6 +23,8 @@ Parameter modDepth("ModDepth", "", 0);
 
 Parameter pullTrigger("TriggerNow", "", 0);
 Parameter loop("Loop", "", 0);
+Parameter loopTime("LoopTime", "", 0.4);
+Parameter playPos("PlayPosition", "", 0);
 Parameter loopTrack("LoopTrack", "", 0);
 Parameter resetAmp("ResetAmps", "", 0);
 Parameter solo("SoloSelected", "", 0);
@@ -50,6 +52,8 @@ Parameter animate("Animate", "", 0);
 Parameter velocity("VelocityScaler", "", 0);
 Parameter scaler("Scaler", "", 0.1);
 
+Parameter selectNone("SelectNone", "", 0);
+Parameter selectAll("SelectAll", "", 0);
 std::vector<Parameter *> trackSelector;
 std::vector<Parameter *> trackTrigger;
 
@@ -90,6 +94,8 @@ void registerParams(ParameterServer& paramServer) {
 
     paramServer.registerParameter(pullTrigger);
     paramServer.registerParameter(loop);
+    paramServer.registerParameter(loopTime);
+    paramServer.registerParameter(playPos);
     paramServer.registerParameter(loopTrack);
     paramServer.registerParameter(resetAmp);
     paramServer.registerParameter(solo);
@@ -115,4 +121,6 @@ void registerParams(ParameterServer& paramServer) {
     paramServer.registerParameter(velocity);
     paramServer.registerParameter(scaler);
 
+    paramServer.registerParameter(selectNone);
+    paramServer.registerParameter(selectAll);
 }
