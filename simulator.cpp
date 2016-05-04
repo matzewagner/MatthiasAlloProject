@@ -464,7 +464,7 @@ void pollOSC() {
             state->g_Models[modelIndex].g_Tracks[i].position = myModels[modelIndex].myTracks[i].rotatedPosition;
             state->g_Models[modelIndex].g_Tracks[i].playHeadPosition = myModels[modelIndex].myTracks[i].playHeadPosition;
             state->g_Models[modelIndex].g_Tracks[i].play = myModels[modelIndex].myTracks[i].play;
-            state->g_Models[modelIndex].g_Tracks[i].sample = myModels[modelIndex].myTracks[i].onSound();
+            state->g_Models[modelIndex].g_Tracks[i].sample = myModels[modelIndex].myTracks[i].s;
         }
 
 
