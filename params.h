@@ -23,6 +23,7 @@ Parameter modDepth("ModDepth", "", 0);
 
 Parameter pullTrigger("TriggerNow", "", 0);
 Parameter loop("Loop", "", 0);
+Parameter loopTrack("LoopTrack", "", 0);
 Parameter resetAmp("ResetAmps", "", 0);
 Parameter solo("SoloSelected", "", 0);
 Parameter mute("MuteSelected", "", 0);
@@ -89,6 +90,7 @@ void registerParams(ParameterServer& paramServer) {
 
     paramServer.registerParameter(pullTrigger);
     paramServer.registerParameter(loop);
+    paramServer.registerParameter(loopTrack);
     paramServer.registerParameter(resetAmp);
     paramServer.registerParameter(solo);
     paramServer.registerParameter(drawSelected);

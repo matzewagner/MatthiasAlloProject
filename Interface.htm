@@ -773,7 +773,7 @@
 		for (var i=0; i<rows; ++i) {
 			var triggerButtonKey = '/Trigger'+index;
 			 myButton[i] = new Interface.Button({
-				bounds:[j/rows, i*(0.9/rows), .1, 0.9/rows],
+				bounds:[j/rows, i*(0.8/rows), .1, 0.8/rows],
 				label: index,
 				mode: 'momentary',
 				isVertical:false,
@@ -790,6 +790,26 @@
 		 	++index;
 		}
 	}
+
+	var resetTrig = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*10, .8, slider_thickness],
+		label: 'Reset Triggers',
+		mode:'momentary',
+		isVertical:false,
+		value:0,
+		fill: 'white',
+		stroke: sliderStrokeColor,
+		background: 'pink',
+		target: 'OSC',
+		key:'/ResetTrigger',
+		onvaluechange : function() {
+			for (var i=0; i<numButtons; ++i) {
+				myButton[i].setValue( (0) );
+				myButton[i].sendTargetMessage();
+			}
+		}
+	});
+	page4.add(resetTrig);
 
 	page4.background = 'black';
 

@@ -62,7 +62,9 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     float globalAmp = 1.0;
     bool soloSelected = false, muteSelected = false;
     bool looper = false;
+    bool trackLooper = false;
     bool isTrigger = false;
+
 
     gam::SamplePlayer<> loadBuffer;
     Reverb<float> reverb;
@@ -78,7 +80,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             myModels{
 //            {"Piano_A4.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
             { filePath[0], 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA3Model"}, // good
-            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
+//            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
 //            {"Violin_A4_noVib.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violinA4noVibModel"}, // ok
@@ -268,10 +270,19 @@ void pollOSC() {
             }
         }
 
+        trackLooper = loopTrack.get();
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+            if (trackLooper) {
+                myModels[modelIndex].myTracks[i].loopTrack = true;
+            } else if (!trackLooper) {
+                myModels[modelIndex].myTracks[i].loopTrack = false;
+            }
+
             if (trackTrigger[i]->get() == 1.0) {
                 myModels[modelIndex].myTracks[i].trigger = true;
             }
+            if (!trackLooper)
+                trackTrigger[i]->set(0);
         }
 
         if (pullTrigger.get() == 1.0)
