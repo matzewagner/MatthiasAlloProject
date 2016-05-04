@@ -9,7 +9,7 @@ using namespace std;
 #include "state.hpp"
 
 struct Gra : OmniStereoGraphicsRenderer {
-  cuttlebone::Taker<State, 9000> taker;
+  cuttlebone::Taker<State, 1400> taker;
   State* state;
 
   unsigned short g_ModelIndex;
