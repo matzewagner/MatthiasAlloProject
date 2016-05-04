@@ -47,7 +47,8 @@ struct Gra : OmniStereoGraphicsRenderer {
   virtual ~Gra() {}
 
   virtual void onAnimate(double dt) {
-  	if (timeFlag < 0.5) {
+  	
+    if (timeFlag < 0.5) {
 			for (int i=0; i < NUM_MODELS; ++i) {
     		for (int j=0; j < N_TRACKS; ++j) {
     			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/441.0; ++k) {
@@ -68,6 +69,7 @@ struct Gra : OmniStereoGraphicsRenderer {
     	}
   		cout << "Built graphics agents" << endl;
   	}
+
       static cuttlebone::Stats fps("onAnimate()");
       fps(dt);
       int popCount = taker.get(*state);
@@ -80,26 +82,26 @@ struct Gra : OmniStereoGraphicsRenderer {
           //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + 0.1 + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5), 
           //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5)
           //                     );
-        agentColor[i] = RGB (1, 1, 1);
+        agentColor[i] = RGB(1, 1, 1);
       }
 
       // box.reset();
 
       
-      for (int i=0; i < NUM_MODELS; ++i) {
-        for (int j=0; j < N_TRACKS; ++j) {
-              // boxWidth[i][j] = state->g_Models[g_ModelIndex].g_Tracks[i].nSamples/44100.0;
-              // float boxHeight = 0.1;
-              // box.vertex(0, boxHeight, 0);
-              // box.vertex(boxWidth[i][j], boxHeight, 0);
-              // box.vertex(boxWidth[i][j], boxHeight, 0);
-              // box.vertex(boxWidth[i][j], -boxHeight, 0);
-              // box.vertex(boxWidth[i][j], -boxHeight, 0);
-              // box.vertex(0, -boxHeight, 0);
-              // box.vertex(0, -boxHeight, 0);
-              // box.vertex(0, boxHeight, 0);
-      }
-    }
+    //   for (int i=0; i < NUM_MODELS; ++i) {
+    //     for (int j=0; j < N_TRACKS; ++j) {
+    //           // boxWidth[i][j] = state->g_Models[g_ModelIndex].g_Tracks[i].nSamples/44100.0;
+    //           // float boxHeight = 0.1;
+    //           // box.vertex(0, boxHeight, 0);
+    //           // box.vertex(boxWidth[i][j], boxHeight, 0);
+    //           // box.vertex(boxWidth[i][j], boxHeight, 0);
+    //           // box.vertex(boxWidth[i][j], -boxHeight, 0);
+    //           // box.vertex(boxWidth[i][j], -boxHeight, 0);
+    //           // box.vertex(0, -boxHeight, 0);
+    //           // box.vertex(0, -boxHeight, 0);
+    //           // box.vertex(0, boxHeight, 0);
+    //   }
+    // }
     state->print();
     timeFlag += dt;
   }

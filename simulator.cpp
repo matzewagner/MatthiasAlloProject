@@ -34,7 +34,7 @@ string filePath[NUM_MODELS];
 // simulator struct
 struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
-    cuttlebone::Maker<State, 9000> maker;
+    cuttlebone::Maker<State, 1400> maker;
     State* state;
 
 //    Mesh ear;
