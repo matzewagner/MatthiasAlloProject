@@ -26,6 +26,7 @@ Parameter loop("Loop", "", 0);
 Parameter loopTime("LoopTime", "", 0.8);
 Parameter playPos("PlayPosition", "", 0);
 Parameter loopTrack("LoopTrack", "", 0);
+Parameter reversePlay("Reverse", "", 0);
 Parameter resetAmp("ResetAmps", "", 0);
 Parameter solo("SoloSelected", "", 0);
 Parameter mute("MuteSelected", "", 0);
@@ -96,6 +97,7 @@ void registerParams(ParameterServer& paramServer) {
     paramServer.registerParameter(loop);
     paramServer.registerParameter(loopTime);
     paramServer.registerParameter(playPos);
+    paramServer.registerParameter(reversePlay);
     paramServer.registerParameter(loopTrack);
     paramServer.registerParameter(resetAmp);
     paramServer.registerParameter(solo);

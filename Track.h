@@ -28,7 +28,7 @@ struct Track {
     Vec3f playHeadPosition;
     float positionScaler;
     bool animate;
-    bool play, trigger, loopTrack;
+    bool play, trigger, loopTrack, isReverse;
     float playPosition;
     bool drawAmps;
     bool selected, drawSelected;
@@ -107,6 +107,7 @@ struct Track {
         position = spectralPosition;
         animate = false;
         play = false;
+        isReverse = false;
         drawAmps = false;
         selected = false;
         drawSelected = false;
@@ -191,10 +192,14 @@ struct Track {
     }
 
     void resetPlayhead(float start) {
-        if (start >= endTime) {
-         sampleIndex = m_freqs.size()-1;
-        }
         sampleIndex = start*sr;
+        if (sampleIndex > m_freqs.size()-1) {
+         sampleIndex = m_freqs.size()-1;
+         play = false;
+        } else if (sampleIndex < 0) {
+            sampleIndex = 0;
+            play = false;
+        }
         osc.phase(next(m_phases, sampleIndex));
         aMod.phase(1.0/(M_PI*0.5));
     }
@@ -204,26 +209,33 @@ struct Track {
             if (trigger && !play) {
                 resetPlayhead(playPosition);
                 play = true;
-                trigger = false;
             }
         } else if (!loopTrack) {
             if (trigger) {
                 resetPlayhead(playPosition);
                 play = true;
-                trigger = false;
             }
         }
         if (play) {
             trigger = false;
-            currentAmp = 0.5;
             currentFreq = next(m_freqs, sampleIndex);
             osc.phase(next(m_phases, sampleIndex));
             osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
             currentAmp = next(m_amps, sampleIndex);
-            ++sampleIndex;
-            while (sampleIndex >= m_freqs.size()-1) {
-                play = false;
-                resetPlayhead(0.0);
+
+            if (isReverse) {
+                --sampleIndex;
+                while (sampleIndex < 0) {
+                    playPosition = endTime;
+                    play = false;
+                    resetPlayhead(playPosition);
+                }
+            } else if (!isReverse) {
+                ++sampleIndex;
+                while (sampleIndex > m_freqs.size()-1) {
+                    play = false;
+                    resetPlayhead(playPosition);
+                }
             }
             s = (osc()*(aMod(AMFreq)*0.5)+0.5)*currentAmp*gainScaler*mute;
             if (s >= 0.99) s = 0.99;

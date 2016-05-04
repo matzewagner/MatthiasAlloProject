@@ -60,6 +60,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     bool looper = false;
     bool trackLooper = false;
     bool isTrigger = false;
+    bool isReverse = false;
     float loopLength = 4.0;
     float playPosition = 0;
 
@@ -233,10 +234,16 @@ void pollOSC() {
         soloSelected = solo.get();
         muteSelected = mute.get();
         playPosition = playPos.get()*myModels[modelIndex].duration;
+        isReverse = reversePlay.get();
 
         // unselect all tracks
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             // set playhead position
+            if (isReverse) {
+                myModels[modelIndex].myTracks[i].isReverse = true;
+            } else if(!isReverse) {
+                myModels[modelIndex].myTracks[i].isReverse = false;
+            }
             myModels[modelIndex].myTracks[i].playPosition = playPosition;
             if (selectAll.get() == 0) {
                 myModels[modelIndex].myTracks[i].selected = false;
@@ -248,6 +255,7 @@ void pollOSC() {
                     myModels[modelIndex].myTracks[i].mute = 1.0;
                 }
             }
+
             else if (selectAll.get() == 1.0) {
                 myModels[modelIndex].myTracks[i].selected = true;
             }
@@ -307,7 +315,6 @@ void pollOSC() {
 
         if (triggerAll.get() == 1.0) {
             isTrigger = true;
-            cout << "TriggerAll\n";
         }
         else
             isTrigger = false;
