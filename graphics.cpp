@@ -17,7 +17,7 @@ struct Gra : OmniStereoGraphicsRenderer {
 
   Mesh freqEnv[N_TRACKS];
   Mesh playHead;
-  Mesh box;
+  Mesh box[N_TRACKS];
 
   Vec3f playHeadPosition;
   float boxWidth[NUM_MODELS][N_TRACKS];
@@ -31,6 +31,8 @@ struct Gra : OmniStereoGraphicsRenderer {
 
     for (int i=0; i<N_TRACKS; ++i) {
     	freqEnv[i].primitive(Graphics::LINE_STRIP);
+      box[i].primitive(Graphics::LINES);
+
     }
     
     playHead.primitive(Graphics::LINE_STRIP);
@@ -39,7 +41,6 @@ struct Gra : OmniStereoGraphicsRenderer {
     playHeadPosition = Vec3f(0, 0, 0);
     playHeadColor = RGB(0, 0.75, 1.0);
 
-    box.primitive(Graphics::LINES);
     selectedColor = RGB(0.5, 0, 0.5);
   }
 
@@ -53,6 +54,16 @@ struct Gra : OmniStereoGraphicsRenderer {
     				float xVert = k*0.01;
     				freqEnv[j].vertex(xVert, 0, 0);
     			}
+              boxWidth[i][j] = state->g_Models[i].g_Tracks[j].nSamples/44100.0;
+              float boxHeight = 0.1;
+              box[j].vertex(0, boxHeight, 0);
+              box[j].vertex(boxWidth[i][j], boxHeight, 0);
+              box[j].vertex(boxWidth[i][j], boxHeight, 0);
+              box[j].vertex(boxWidth[i][j], -boxHeight, 0);
+              box[j].vertex(boxWidth[i][j], -boxHeight, 0);
+              box[j].vertex(0, -boxHeight, 0);
+              box[j].vertex(0, -boxHeight, 0);
+              box[j].vertex(0, boxHeight, 0);
     		}
     	}
   		cout << "Built graphics agents" << endl;
@@ -71,23 +82,21 @@ struct Gra : OmniStereoGraphicsRenderer {
                               );
       }
 
-      box.reset();
+      // box.reset();
 
       
       for (int i=0; i < NUM_MODELS; ++i) {
         for (int j=0; j < N_TRACKS; ++j) {
-            if (state->g_Models[g_ModelIndex].g_Tracks[i].selected) {
-              boxWidth[i][j] = state->g_Models[g_ModelIndex].g_Tracks[i].nSamples/44100.0;
-              float boxHeight = 0.1;
-              box.vertex(0, boxHeight, 0);
-              box.vertex(boxWidth[i][j], boxHeight, 0);
-              box.vertex(boxWidth[i][j], boxHeight, 0);
-              box.vertex(boxWidth[i][j], -boxHeight, 0);
-              box.vertex(boxWidth[i][j], -boxHeight, 0);
-              box.vertex(0, -boxHeight, 0);
-              box.vertex(0, -boxHeight, 0);
-              box.vertex(0, boxHeight, 0);
-        }
+              // boxWidth[i][j] = state->g_Models[g_ModelIndex].g_Tracks[i].nSamples/44100.0;
+              // float boxHeight = 0.1;
+              // box.vertex(0, boxHeight, 0);
+              // box.vertex(boxWidth[i][j], boxHeight, 0);
+              // box.vertex(boxWidth[i][j], boxHeight, 0);
+              // box.vertex(boxWidth[i][j], -boxHeight, 0);
+              // box.vertex(boxWidth[i][j], -boxHeight, 0);
+              // box.vertex(0, -boxHeight, 0);
+              // box.vertex(0, -boxHeight, 0);
+              // box.vertex(0, boxHeight, 0);
       }
     }
     state->print();
@@ -112,7 +121,7 @@ struct Gra : OmniStereoGraphicsRenderer {
   	  }
       if (state->g_Models[g_ModelIndex].g_Tracks[i].selected) {
         g.color(selectedColor);
-        g.draw(box);
+        g.draw(box[i]);
       }
       g.popMatrix(); 
 

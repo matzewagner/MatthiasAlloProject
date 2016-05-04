@@ -79,15 +79,15 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             myModels{
 //            {"Piano_A4.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
             { filePath[0], 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA3Model"}, // good
-//            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
+            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
 //            {"Violin_A4_noVib.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violinA4noVibModel"}, // ok
 //            {"Harpsichord_A4.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.1, 50, 15000, 100, "harpsichordA4Model"}, // needs work
-//            {filePath[2], 3.0, 440, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "trumpetA4Model"}, // ok
+           {filePath[2], 3.0, 440, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "trumpetA4Model"}, // ok
            // {filePath[2], 3.0, 440, 44100, 0.3, 0.2, 0.008, 0.9, -100, 0.05, 50, 15000, 100, "trumpetA3Model"}, // ok
 //            {"Soprano_328Hz.aiff", 2.5, 330, 44100, 0.05, 0.3, 0.008, 0.9, -120, 0.05, 50, 3900, 100, "sopranoModel"}, // needs work
-           // {filePath[3], 3.0, 220, 44100, 0.2, 0.2, 0.016, 0.5, -120, 0.05, 50, 15000, 100, "fluteA4Model"}, // good
+           {filePath[3], 3.0, 220, 44100, 0.2, 0.2, 0.016, 0.5, -120, 0.05, 50, 15000, 100, "fluteA4Model"}, // good
 //            {"Flute_A4_close.aiff", 3.0, 440, 44100, 0.1, 0.2, 0.016, 0.5, -150, 0.05, 50, 15000, 100, "fluteModel"}, // good
 //            {"Clarinet_A4_exp.aiff", 2.5, 440, 44100, 0.1, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "clarinetModel"}, // ok
 //            {"Clarinet_A4_noVib.aiff", 2.5, 443, 44100, 0.2, 0.1, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "clarinetModel"}, // good
@@ -258,6 +258,7 @@ void pollOSC() {
 
             else if (selectAll.get() == 1.0) {
                 myModels[modelIndex].myTracks[i].selected = true;
+                state->g_Models[modelIndex].g_Tracks[i].selected = false;
             }
             if (drawSelected.get() == 1.0) {
                 myModels[modelIndex].myTracks[i].drawSelected = true;
@@ -445,11 +446,6 @@ void pollOSC() {
             myModels[modelIndex].myTracks[i].onDraw(g);
             g.popMatrix();
         }
-//        g.pushMatrix();
-//        g.scale(0.2, 0.2, 0.2);
-//        g.color(Color(1.0, 0.6, 0.0, 1.0));
-//        g.draw(ear);
-//        g.popMatrix();
 
         g.clearColor(1.0);
     }

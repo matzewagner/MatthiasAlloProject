@@ -2,7 +2,7 @@
 #define STATE_HPP
 
 #define L 10
-#define NUM_MODELS 2
+#define NUM_MODELS 4
 #define N_TRACKS 100
 
 struct g_Track {
