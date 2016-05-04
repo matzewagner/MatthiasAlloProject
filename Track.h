@@ -191,6 +191,9 @@ struct Track {
     }
 
     void resetPlayhead(float start) {
+        if (start >= endTime) {
+         sampleIndex = m_freqs.size()-1;
+        }
         sampleIndex = start*sr;
         osc.phase(next(m_phases, sampleIndex));
         aMod.phase(1.0/(M_PI*0.5));
@@ -208,8 +211,6 @@ struct Track {
                 resetPlayhead(playPosition);
                 play = true;
                 trigger = false;
-            } else {
-
             }
         }
         if (play) {
@@ -220,7 +221,7 @@ struct Track {
             osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
             currentAmp = next(m_amps, sampleIndex);
             ++sampleIndex;
-            while (sampleIndex >= m_freqs.size()) {
+            while (sampleIndex >= m_freqs.size()-1) {
                 play = false;
                 resetPlayhead(0.0);
             }

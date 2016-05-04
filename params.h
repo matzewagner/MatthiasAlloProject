@@ -21,9 +21,9 @@ Parameter amFreq("AM", "", 0);
 Parameter fmFreq("FM", "", 0);
 Parameter modDepth("ModDepth", "", 0);
 
-Parameter pullTrigger("TriggerNow", "", 0);
+Parameter triggerAll("TriggerAll", "", 0);
 Parameter loop("Loop", "", 0);
-Parameter loopTime("LoopTime", "", 0.4);
+Parameter loopTime("LoopTime", "", 0.8);
 Parameter playPos("PlayPosition", "", 0);
 Parameter loopTrack("LoopTrack", "", 0);
 Parameter resetAmp("ResetAmps", "", 0);
@@ -92,7 +92,7 @@ void registerParams(ParameterServer& paramServer) {
     paramServer.registerParameter(modDepth);
     paramServer.registerParameter(mute);
 
-    paramServer.registerParameter(pullTrigger);
+    paramServer.registerParameter(triggerAll);
     paramServer.registerParameter(loop);
     paramServer.registerParameter(loopTime);
     paramServer.registerParameter(playPos);

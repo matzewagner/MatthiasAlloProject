@@ -1,9 +1,5 @@
 // simulator.cpp
 
-
-// the parameters
-
-
 #include "allocore/io/al_App.hpp"
 #include "Cuttlebone/Cuttlebone.hpp"
 #include "alloutil/al_AlloSphereAudioSpatializer.hpp"
@@ -189,8 +185,9 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 void pollOSC() {
 
         globalAmp = globalGain.get()*10;
-        loopLength = loopTime.get()*10;
+        loopLength = loopTime.get()*5;
 
+        // select model
         if (model0.get() == 1.0 && currentModel != 0) {
             if (NUM_MODELS <= 0)
                 return;
@@ -263,6 +260,7 @@ void pollOSC() {
 
         }
 
+        // select / unselect tracks
         if (selectNone.get() == 1.0) {
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
                 trackSelector[i]->set(0);
@@ -290,6 +288,7 @@ void pollOSC() {
             }
         }
 
+        // triggering
         trackLooper = loopTrack.get();
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             if (trackLooper) {
@@ -303,15 +302,13 @@ void pollOSC() {
             }
             if (!trackLooper)
                 trackTrigger[i]->set(0);
-
-            if (looper || isTrigger) {
-                myModels[modelIndex].myTracks[i].trigger = true;
-            }
         }
 
 
-        if (pullTrigger.get() == 1.0)
+        if (triggerAll.get() == 1.0) {
             isTrigger = true;
+            cout << "TriggerAll\n";
+        }
         else
             isTrigger = false;
 
@@ -335,6 +332,7 @@ void pollOSC() {
             modDepth.set(0.0);
         }
 
+        // positions
         if (specPos.get() == 1.0 && currentTarget != 1) {
             time = 0;
             currentTarget = target = 1;
@@ -583,11 +581,16 @@ void pollOSC() {
         while (io()) {
 
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+                if ((looper && (trigger == 0))
+                    || isTrigger) {
+                    for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+                        myModels[modelIndex].myTracks[i].trigger = true;
+                    }
+                }
                 // add each agent's sound output to global output
                 s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
                 tap[i].writeSample((s));
             }
-
             trigger = fmod(++trigger,(loopLength * sr));
         }
 
