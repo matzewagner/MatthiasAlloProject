@@ -89,23 +89,23 @@ struct Gra : OmniStereoGraphicsRenderer {
         // agentColor[i] = RGB(1, 1, 1);
       }
 
-      box.reset();
+      // box.reset();
 
       
-      for (int i=0; i < NUM_MODELS; ++i) {
-        for (int j=0; j < N_TRACKS; ++j) {
-              // boxWidth[i][j] = state->g_Models[g_ModelIndex].g_Tracks[i].nSamples/44100.0;
-              // float boxHeight = 0.1;
-              // box.vertex(0, boxHeight, 0);
-              // box.vertex(boxWidth[i][j], boxHeight, 0);
-              // box.vertex(boxWidth[i][j], boxHeight, 0);
-              // box.vertex(boxWidth[i][j], -boxHeight, 0);
-              // box.vertex(boxWidth[i][j], -boxHeight, 0);
-              // box.vertex(0, -boxHeight, 0);
-              // box.vertex(0, -boxHeight, 0);
-              // box.vertex(0, boxHeight, 0);
-      }
-    }
+    //   for (int i=0; i < NUM_MODELS; ++i) {
+    //     for (int j=0; j < N_TRACKS; ++j) {
+    //           // boxWidth[i][j] = state->g_Models[g_ModelIndex].g_Tracks[i].nSamples/44100.0;
+    //           // float boxHeight = 0.1;
+    //           // box.vertex(0, boxHeight, 0);
+    //           // box.vertex(boxWidth[i][j], boxHeight, 0);
+    //           // box.vertex(boxWidth[i][j], boxHeight, 0);
+    //           // box.vertex(boxWidth[i][j], -boxHeight, 0);
+    //           // box.vertex(boxWidth[i][j], -boxHeight, 0);
+    //           // box.vertex(0, -boxHeight, 0);
+    //           // box.vertex(0, -boxHeight, 0);
+    //           // box.vertex(0, boxHeight, 0);
+    //   }
+    // }
     state->print();
     timeFlag += dt;
   }
