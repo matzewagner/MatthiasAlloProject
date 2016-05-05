@@ -48,27 +48,27 @@ struct Gra : OmniStereoGraphicsRenderer {
 
   virtual void onAnimate(double dt) {
   	
-   //  if (timeFlag < 0.5) {
-			// for (int i=0; i < NUM_MODELS; ++i) {
-   //  		for (int j=0; j < N_TRACKS; ++j) {
-   //  			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/441.0; ++k) {
-   //  				float xVert = k*0.01;
-   //  				freqEnv[j].vertex(xVert, 0, 0);
-   //  			}
-   //            boxWidth[i][j] = state->g_Models[i].g_Tracks[j].nSamples/44100.0;
-   //            float boxHeight = 0.1;
-   //            box[j].vertex(0, boxHeight, 0);
-   //            box[j].vertex(boxWidth[i][j], boxHeight, 0);
-   //            box[j].vertex(boxWidth[i][j], boxHeight, 0);
-   //            box[j].vertex(boxWidth[i][j], -boxHeight, 0);
-   //            box[j].vertex(boxWidth[i][j], -boxHeight, 0);
-   //            box[j].vertex(0, -boxHeight, 0);
-   //            box[j].vertex(0, -boxHeight, 0);
-   //            box[j].vertex(0, boxHeight, 0);
-   //  		}
-   //  	}
-  	// 	cout << "Built graphics agents" << endl;
-  	// }
+    if (timeFlag < 0.5) {
+			for (int i=0; i < NUM_MODELS; ++i) {
+    		for (int j=0; j < N_TRACKS; ++j) {
+    			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/441.0; ++k) {
+    				float xVert = k*0.01;
+    				freqEnv[j].vertex(xVert, 0, 0);
+    			}
+              boxWidth[i][j] = state->g_Models[i].g_Tracks[j].nSamples/44100.0;
+              float boxHeight = 0.1;
+              box[j].vertex(0, boxHeight, 0);
+              box[j].vertex(boxWidth[i][j], boxHeight, 0);
+              box[j].vertex(boxWidth[i][j], boxHeight, 0);
+              box[j].vertex(boxWidth[i][j], -boxHeight, 0);
+              box[j].vertex(boxWidth[i][j], -boxHeight, 0);
+              box[j].vertex(0, -boxHeight, 0);
+              box[j].vertex(0, -boxHeight, 0);
+              box[j].vertex(0, boxHeight, 0);
+    		}
+    	}
+  		cout << "Built graphics agents" << endl;
+  	}
 
       static cuttlebone::Stats fps("onAnimate()");
       fps(dt);
