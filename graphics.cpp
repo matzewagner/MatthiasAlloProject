@@ -72,7 +72,8 @@ struct Gra : OmniStereoGraphicsRenderer {
 
       static cuttlebone::Stats fps("onAnimate()");
       fps(dt);
-      int popCount = taker.get(*state);
+      while (taker.get(*state));
+      // int popCount = taker.get(*state);
       pose = state->pose;
       g_ModelIndex = state->modelIndex;
 
