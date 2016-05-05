@@ -28,7 +28,7 @@ struct Gra : OmniStereoGraphicsRenderer {
 
   Gra() {
     state = new State;
-
+    memset(state, 0, sizeof(State));
     for (int i=0; i<N_TRACKS; ++i) {
     	freqEnv[i].primitive(Graphics::LINE_STRIP);
       box[i].primitive(Graphics::LINES);
@@ -49,7 +49,7 @@ struct Gra : OmniStereoGraphicsRenderer {
   virtual void onAnimate(double dt) {
   	
     if (timeFlag < 0.5) {
-      
+
 			for (int i=0; i < NUM_MODELS; ++i) {
     		for (int j=0; j < N_TRACKS; ++j) {
     			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/441.0; ++k) {
@@ -113,20 +113,22 @@ struct Gra : OmniStereoGraphicsRenderer {
   virtual void onDraw(Graphics& g) {
 
     cout << "check" << endl;
+
     for (int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
+      
       //draw agents
       g.pushMatrix();
       g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].position);
       g.color(agentColor[i]);
       g.scale(1.0);
       g.draw(freqEnv[i]);
-      if (state->g_Models[g_ModelIndex].g_Tracks[i].play) {
-	      g.pushMatrix();
-	      g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].playHeadPosition[0], 0);
-	      g.color(playHeadColor);
-	      g.draw(playHead);
-	      g.popMatrix();
-  	  }
+     //  if (state->g_Models[g_ModelIndex].g_Tracks[i].play) {
+	    //   g.pushMatrix();
+	    //   g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].playHeadPosition[0], 0);
+	    //   g.color(playHeadColor);
+	    //   g.draw(playHead);
+	    //   g.popMatrix();
+  	  // }
       if (state->g_Models[g_ModelIndex].g_Tracks[i].selected) {
         g.color(selectedColor);
         g.draw(box[i]);
