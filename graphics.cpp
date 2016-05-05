@@ -78,34 +78,34 @@ struct Gra : OmniStereoGraphicsRenderer {
       pose = state->pose;
       g_ModelIndex = state->modelIndex;
 
-      // cout << "Index: " << g_ModelIndex << endl;
+      cout << "Index: " << g_ModelIndex << endl;
       
-      // for(int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
-      //     // agentColor[i] = RGB(
-      //     //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler,
-      //     //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + 0.1 + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5), 
-      //     //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5)
-      //     //                     );
-      //   agentColor[i] = RGB(1, 1, 1);
-      // }
+      for(int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
+          agentColor[i] = RGB(
+                              state->g_Models[g_ModelIndex].g_Tracks[i].offColor + state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler,
+                              state->g_Models[g_ModelIndex].g_Tracks[i].offColor + 0.1 + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5), 
+                              state->g_Models[g_ModelIndex].g_Tracks[i].offColor + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5)
+                              );
+        // agentColor[i] = RGB(1, 1, 1);
+      }
 
-      // box.reset();
+      box.reset();
 
       
-    //   for (int i=0; i < NUM_MODELS; ++i) {
-    //     for (int j=0; j < N_TRACKS; ++j) {
-    //           // boxWidth[i][j] = state->g_Models[g_ModelIndex].g_Tracks[i].nSamples/44100.0;
-    //           // float boxHeight = 0.1;
-    //           // box.vertex(0, boxHeight, 0);
-    //           // box.vertex(boxWidth[i][j], boxHeight, 0);
-    //           // box.vertex(boxWidth[i][j], boxHeight, 0);
-    //           // box.vertex(boxWidth[i][j], -boxHeight, 0);
-    //           // box.vertex(boxWidth[i][j], -boxHeight, 0);
-    //           // box.vertex(0, -boxHeight, 0);
-    //           // box.vertex(0, -boxHeight, 0);
-    //           // box.vertex(0, boxHeight, 0);
-    //   }
-    // }
+      for (int i=0; i < NUM_MODELS; ++i) {
+        for (int j=0; j < N_TRACKS; ++j) {
+              // boxWidth[i][j] = state->g_Models[g_ModelIndex].g_Tracks[i].nSamples/44100.0;
+              // float boxHeight = 0.1;
+              // box.vertex(0, boxHeight, 0);
+              // box.vertex(boxWidth[i][j], boxHeight, 0);
+              // box.vertex(boxWidth[i][j], boxHeight, 0);
+              // box.vertex(boxWidth[i][j], -boxHeight, 0);
+              // box.vertex(boxWidth[i][j], -boxHeight, 0);
+              // box.vertex(0, -boxHeight, 0);
+              // box.vertex(0, -boxHeight, 0);
+              // box.vertex(0, boxHeight, 0);
+      }
+    }
     state->print();
     timeFlag += dt;
   }
