@@ -76,7 +76,7 @@ struct Gra : OmniStereoGraphicsRenderer {
       // int popCount = taker.get(*state);
       pose = state->pose;
       g_ModelIndex = state->modelIndex;
-
+      cout << "Index: " << g_ModelIndex << endl;
       for(int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
           // agentColor[i] = RGB(
           //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler,
