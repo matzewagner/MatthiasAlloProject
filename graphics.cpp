@@ -48,27 +48,27 @@ struct Gra : OmniStereoGraphicsRenderer {
 
   virtual void onAnimate(double dt) {
   	
-    if (timeFlag < 0.5) {
-			for (int i=0; i < NUM_MODELS; ++i) {
-    		for (int j=0; j < N_TRACKS; ++j) {
-    			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/441.0; ++k) {
-    				float xVert = k*0.01;
-    				freqEnv[j].vertex(xVert, 0, 0);
-    			}
-              boxWidth[i][j] = state->g_Models[i].g_Tracks[j].nSamples/44100.0;
-              float boxHeight = 0.1;
-              box[j].vertex(0, boxHeight, 0);
-              box[j].vertex(boxWidth[i][j], boxHeight, 0);
-              box[j].vertex(boxWidth[i][j], boxHeight, 0);
-              box[j].vertex(boxWidth[i][j], -boxHeight, 0);
-              box[j].vertex(boxWidth[i][j], -boxHeight, 0);
-              box[j].vertex(0, -boxHeight, 0);
-              box[j].vertex(0, -boxHeight, 0);
-              box[j].vertex(0, boxHeight, 0);
-    		}
-    	}
-  		cout << "Built graphics agents" << endl;
-  	}
+   //  if (timeFlag < 0.5) {
+			// for (int i=0; i < NUM_MODELS; ++i) {
+   //  		for (int j=0; j < N_TRACKS; ++j) {
+   //  			for (int k=0; k < state->g_Models[i].g_Tracks[j].nSamples/441.0; ++k) {
+   //  				float xVert = k*0.01;
+   //  				freqEnv[j].vertex(xVert, 0, 0);
+   //  			}
+   //            boxWidth[i][j] = state->g_Models[i].g_Tracks[j].nSamples/44100.0;
+   //            float boxHeight = 0.1;
+   //            box[j].vertex(0, boxHeight, 0);
+   //            box[j].vertex(boxWidth[i][j], boxHeight, 0);
+   //            box[j].vertex(boxWidth[i][j], boxHeight, 0);
+   //            box[j].vertex(boxWidth[i][j], -boxHeight, 0);
+   //            box[j].vertex(boxWidth[i][j], -boxHeight, 0);
+   //            box[j].vertex(0, -boxHeight, 0);
+   //            box[j].vertex(0, -boxHeight, 0);
+   //            box[j].vertex(0, boxHeight, 0);
+   //  		}
+   //  	}
+  	// 	cout << "Built graphics agents" << endl;
+  	// }
 
       static cuttlebone::Stats fps("onAnimate()");
       fps(dt);
@@ -76,15 +76,17 @@ struct Gra : OmniStereoGraphicsRenderer {
       // int popCount = taker.get(*state);
       pose = state->pose;
       g_ModelIndex = state->modelIndex;
-      cout << "Index: " << g_ModelIndex << endl;
-      for(int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
-          // agentColor[i] = RGB(
-          //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler,
-          //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + 0.1 + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5), 
-          //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5)
-          //                     );
-        agentColor[i] = RGB(1, 1, 1);
-      }
+
+      // cout << "Index: " << g_ModelIndex << endl;
+      
+      // for(int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
+      //     // agentColor[i] = RGB(
+      //     //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler,
+      //     //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + 0.1 + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5), 
+      //     //                     state->g_Models[g_ModelIndex].g_Tracks[i].offColor + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5)
+      //     //                     );
+      //   agentColor[i] = RGB(1, 1, 1);
+      // }
 
       // box.reset();
 
@@ -109,27 +111,28 @@ struct Gra : OmniStereoGraphicsRenderer {
 
   virtual void onDraw(Graphics& g) {
 
-    for (int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
-      //draw agents
-      g.pushMatrix();
-      g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].position);
-      g.color(agentColor[i]);
-      g.scale(1.0);
-      g.draw(freqEnv[i]);
-      if (state->g_Models[g_ModelIndex].g_Tracks[i].play) {
-	      g.pushMatrix();
-	      g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].playHeadPosition[0], 0);
-	      g.color(playHeadColor);
-	      g.draw(playHead);
-	      g.popMatrix();
-  	  }
-      if (state->g_Models[g_ModelIndex].g_Tracks[i].selected) {
-        g.color(selectedColor);
-        g.draw(box[i]);
-      }
-      g.popMatrix(); 
+    cout << "check" << endl;
+    // for (int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
+    //   //draw agents
+    //   g.pushMatrix();
+    //   g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].position);
+    //   g.color(agentColor[i]);
+    //   g.scale(1.0);
+    //   g.draw(freqEnv[i]);
+    //   if (state->g_Models[g_ModelIndex].g_Tracks[i].play) {
+	   //    g.pushMatrix();
+	   //    g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].playHeadPosition[0], 0);
+	   //    g.color(playHeadColor);
+	   //    g.draw(playHead);
+	   //    g.popMatrix();
+  	 //  }
+    //   if (state->g_Models[g_ModelIndex].g_Tracks[i].selected) {
+    //     g.color(selectedColor);
+    //     g.draw(box[i]);
+    //   }
+    //   g.popMatrix(); 
 
-    }
+    // }
 
     shader().uniform("lighting", 0.0);
     omni().clearColor() = state->bgColor;
