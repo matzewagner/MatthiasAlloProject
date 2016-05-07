@@ -37,7 +37,6 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     cuttlebone::Maker<State, 1400> maker;
     State* state;
 
-//    Mesh ear;
     Light light;
     double time = 0;
     int trigger = 0;
@@ -59,7 +58,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     bool soloSelected = false, muteSelected = false;
     bool looper = false;
     bool trackLooper = false;
-    bool isTrigger = false;
+    bool isTriggerAll = false;
     bool isReverse = false;
     float loopLength = 4.0;
     float playPosition = 0;
@@ -79,15 +78,15 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             myModels{
 //            {"Piano_A4.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
             { filePath[0], 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA3Model"}, // good
-            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
+            { filePath[3], 2.0, 135, 44100, 0.01, 10, 0.016, 0.25, -360, 0.05, 50, 7500, 200, "Icarus"}, // good
+//            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
 //            {"Violin_A4_noVib.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violinA4noVibModel"}, // ok
 //            {"Harpsichord_A4.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.1, 50, 15000, 100, "harpsichordA4Model"}, // needs work
-           {filePath[2], 3.0, 440, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "trumpetA4Model"}, // ok
-           // {filePath[2], 3.0, 440, 44100, 0.3, 0.2, 0.008, 0.9, -100, 0.05, 50, 15000, 100, "trumpetA3Model"}, // ok
+//            { filePath[2], 3.0, 440, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "trumpetA4Model"}, // ok
+           // { filePath[2], 3.0, 440, 44100, 0.3, 0.2, 0.008, 0.9, -100, 0.05, 50, 15000, 100, "trumpetA3Model"}, // ok
 //            {"Soprano_328Hz.aiff", 2.5, 330, 44100, 0.05, 0.3, 0.008, 0.9, -120, 0.05, 50, 3900, 100, "sopranoModel"}, // needs work
-           {filePath[3], 3.0, 220, 44100, 0.2, 0.2, 0.016, 0.5, -120, 0.05, 50, 15000, 100, "fluteA4Model"}, // good
 //            {"Flute_A4_close.aiff", 3.0, 440, 44100, 0.1, 0.2, 0.016, 0.5, -150, 0.05, 50, 15000, 100, "fluteModel"}, // good
 //            {"Clarinet_A4_exp.aiff", 2.5, 440, 44100, 0.1, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "clarinetModel"}, // ok
 //            {"Clarinet_A4_noVib.aiff", 2.5, 443, 44100, 0.2, 0.1, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "clarinetModel"}, // good
@@ -112,10 +111,6 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         AlloSphereAudioSpatializer::initSpatialization();
         // turn this off to preserve performance
         scene()->usePerSampleProcessing(false);
-
-//        addSphere(ear);
-//        ear.primitive(Graphics::TRIANGLES);
-//        ear.generateNormals();
 
         state->colorGain = 300;
         state->frame = 0;
@@ -315,10 +310,10 @@ void pollOSC() {
 
 
         if (triggerAll.get() == 1.0) {
-            isTrigger = true;
+            isTriggerAll = true;
         }
         else
-            isTrigger = false;
+            isTriggerAll = false;
 
         if (loop.get() == 1.0)
             looper = true;
@@ -568,13 +563,10 @@ void pollOSC() {
 
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             // calculate each agent's audio position
-            // tap[i].pose(Pose(myModels[modelIndex].myTracks[i].rotatedPosition, Quatf()));
             tap[i].pos(myModels[modelIndex].myTracks[i].rotatedPosition[0],
             			myModels[modelIndex].myTracks[i].rotatedPosition[1],
             			myModels[modelIndex].myTracks[i].rotatedPosition[2]);
         }
-
-
 
         float trigInSeconds = trigger/float(sr);
         float s = 0;
@@ -584,17 +576,27 @@ void pollOSC() {
         while (io()) {
 
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                if ((looper && (trigger == 0))
-                    || isTrigger) {
-                    for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                        myModels[modelIndex].myTracks[i].trigger = true;
-                    }
+                // trigger each track when trigger reaches its start time
+                double trackStartTime = myModels[modelIndex].myTracks[i].startTime;
+                if ((trigger >= (trackStartTime*sr) && (trigger <= (trackStartTime*sr)+1))) {
+                    myModels[modelIndex].myTracks[i].trigger = true;
                 }
                 // add each agent's sound output to global output
                 s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
                 tap[i].writeSample((s));
             }
-            trigger = fmod(++trigger,(loopLength * sr));
+
+            // if looping, trigger is the modulo of the looplength
+            if (looper) {
+                trigger = fmod(trigger,(loopLength * sr));
+            }
+            // if triggering manually, set trigger to 0
+            if (isTriggerAll) {
+                trigger = 0;
+            }
+            // increment trigger timer
+            trigger = (++trigger%(60*sr))+1;
+
         }
 
         listener()->pose(nav());
@@ -748,7 +750,7 @@ int main(){
 
     SearchPaths myPath;
     myPath.addAppPaths();
-    string fileName[] = {"Piano_A3.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Flute_A4.aiff"};
+    string fileName[] = {"Piano_A3.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Icarus.aiff"};
     for (int i=0; i<NUM_MODELS; ++i) {
         filePath[i] = myPath.find(fileName[i]).filepath();
         cout << "\nfile path " << i << ": " << filePath[i] << endl;

@@ -80,7 +80,7 @@ LorisModel::LorisModel(string fN,
 
     int trackCount = 0;
 
-    for ( auto listIt = partials->begin(); listIt != partials->end(); ++listIt) {
+    for (auto listIt = partials->begin(); listIt != partials->end(); ++listIt) {
         double level = 0;
         double currentFreq = 0;
         double currentAmp = 0;

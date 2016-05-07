@@ -28,7 +28,7 @@ struct Gra : OmniStereoGraphicsRenderer {
 
   Gra() {
     state = new State;
-    memset(state, 0, sizeof(State));
+    memset(state, 0, sizeof(State)); // set everything to 0
     for (int i=0; i<N_TRACKS; ++i) {
     	freqEnv[i].primitive(Graphics::LINE_STRIP);
       box[i].primitive(Graphics::LINES);

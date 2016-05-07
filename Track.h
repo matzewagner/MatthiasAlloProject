@@ -92,8 +92,9 @@ struct Track {
                         0);
         }
         
-        playHead.vertex(0, 0.02, 0);
-        playHead.vertex(0, -0.02, 0);
+        playHead.vertex(0, 0.025, 0);
+        playHead.vertex(0, -0.025, 0);
+
         playHeadPosition = Vec3f(0, 0, 0);
 
         offColor = 0.25;
@@ -122,7 +123,11 @@ struct Track {
     }
 
     void onAnimate(double dt) {
-        audioColor = pow(abs(s),1)*colorScaler;
+        if (play) {
+            audioColor = pow(abs(s),1)*colorScaler;
+        } else {
+            audioColor = 0;
+        }
         if (drawAmps)
             trackColor = RGB( offColor + (1.0 * audioColor), offColor+0.1 + (0.5 * audioColor), offColor + (0.5 * audioColor));
         else
@@ -181,6 +186,7 @@ struct Track {
             g.pushMatrix();
             g.color(playHeadColor);
             g.translate(playHeadPosition);
+            g.scale(2.0, 1.0);
             g.draw(playHead);
             g.popMatrix();
         }
@@ -237,6 +243,7 @@ struct Track {
                     resetPlayhead(playPosition);
                 }
             }
+
             s = (osc()*(aMod(AMFreq)*0.5)+0.5)*currentAmp*gainScaler*mute;
             if (s >= 0.99) s = 0.99;
             else if (s <= -0.99) s = -0.99;
