@@ -57,7 +57,6 @@ LorisModel::LorisModel(string fN,
     : fName(fN), duration(sf_dur), FUNDAMENTAL(fund), sr(s_rate)
 {
     static const unsigned long BUFSZ = sr * duration;
-    cout << "\n\nduration: " << duration << endl;
     double samples[BUFSZ];
 
     const char * fileName = fName.c_str();

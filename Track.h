@@ -206,7 +206,7 @@ struct Track {
     }
 
     float next(vector<double>& myVector, int sIndex) {
-            return myVector[sIndex];
+        return myVector[sIndex];
     }
 
     void resetPlayhead(float start) {
@@ -237,7 +237,7 @@ struct Track {
         if (play) {
             trigger = false;
             currentFreq = next(m_freqs, sampleIndex);
-            osc.phase(next(m_phases, sampleIndex));
+//            osc.phase(next(m_phases, sampleIndex));
             osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
             currentAmp = next(m_amps, sampleIndex);
 
@@ -259,6 +259,7 @@ struct Track {
             s = (osc()*(aMod(AMFreq)*0.5)+0.5)*currentAmp*gainScaler*mute;
             if (s >= 0.99) s = 0.99;
             else if (s <= -0.99) s = -0.99;
+
             return s;
         } else {
             return 0;
