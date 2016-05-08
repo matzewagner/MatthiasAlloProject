@@ -122,7 +122,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
 
         for (int j=0; j<NUM_MODELS; ++j) {
-            sort(myModels[j].myTracks.begin(), myModels[j].myTracks.end(), featureCompare("freqAverage"));
+            sort(myModels[j].myTracks.begin(), myModels[j].myTracks.end(), featureCompare("rms"));
 
             int x=0, y=0;
             for (int i=0; i<myModels[j].myTracks.size(); ++i) {

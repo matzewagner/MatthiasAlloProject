@@ -263,7 +263,11 @@ struct featureCompare {
       if(property == "freqAverage")
           return t1.freqAverage < t2.freqAverage;
       else if(property == "rms")
-          return t1.rms < t2.rms;
+          return t1.rms > t2.rms;
+      else if(property == "level")
+          return t1.level > t2.level;
+      else if(property == "maxAmp")
+          return t1.maxAmp > t2.maxAmp;
       else
           return t1.trackID < t2.trackID;
   }

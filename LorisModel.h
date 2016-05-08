@@ -14,7 +14,7 @@ struct LorisModel {
     PartialList * partials = NULL;
     double sr;
     unsigned int nSamps;
-    int nTracks = 0;
+    int nTracks = 0, nTempTracks = 0;
 
     LorisModel(string="Piano_A3.aiff",
                float=2.5,   //dur
@@ -82,6 +82,7 @@ LorisModel::LorisModel(string fN,
 
     int trackCount = 0;
 
+    // for every partial in the model
     for (auto listIt = partials->begin(); listIt != partials->end(); ++listIt) {
         double level = 0;
         double currentFreq = 0;
@@ -95,11 +96,13 @@ LorisModel::LorisModel(string fN,
         // check if partial is usable
         double maximumAmp = 0;
 
+        // iterate over all the samples
         for (double sampleIt = 0.0; sampleIt <= (*listIt).duration(); sampleIt+=(1.0/float(sr))) {
             currentAmp = (*listIt).amplitudeAt(sampleIt);
             amps.push_back(currentAmp);
-            if (abs(currentAmp) > maximumAmp)
+            if (abs(currentAmp) > maximumAmp) {
                 maximumAmp = currentAmp;
+            }
             currentFreq = (*listIt).frequencyAt(sampleIt); // need freqs for Track ctor
             freqSum += currentFreq;
             level += pow((currentAmp), 2.0);
@@ -109,33 +112,42 @@ LorisModel::LorisModel(string fN,
         rms = float(level) / float(sampleCounter);
         frqAverage = float(freqSum) / float(sampleCounter);
         ++trackCount;
-        // if usable
-        if ( (*listIt).duration() > minTrackLength
-             && (frqAverage > lowFreqLimit)
-             && (frqAverage < hiFreqLimit)
-             && maximumAmp > 0
+
+        Track newTrack(sr, (*listIt).duration(), freqs, amps, (*listIt).startTime(), nTracks);
+
+        for (double sampleIt = 0.0; sampleIt <= (*listIt).duration(); sampleIt+=(1.0/float(sr))) {
+            currentAmp = (*listIt).amplitudeAt(sampleIt);
+            newTrack.m_amps.push_back(currentAmp);
+            currentPhase = (*listIt).phaseAt(sampleIt);
+            adjustedPhase = (currentPhase / double(2*M_PI)) + 0.5; // Gamma Sine<> needs phase between 0 and 1
+            newTrack.m_phases.push_back(adjustedPhase);
+            newTrack.m_bandwidths.push_back((*listIt).bandwidthAt(sampleIt));
+        }
+
+        newTrack.endTime = (*listIt).endTime();
+        newTrack.freqAverage = frqAverage;
+        newTrack.rms = rms;
+        newTrack.level = level;
+        newTrack.maxAmp = maximumAmp;
+        newTrack.trackID = nTempTracks;
+
+        tempTracks.push_back(newTrack);
+        ++nTempTracks;
+
+    }
+
+    // sort tracks according to RMS to ensure we get the all the most prominent partials
+    sort(tempTracks.begin(), tempTracks.end(), featureCompare("rms"));
+
+    for (int i=0; i<maxNTracks; ++i) {
+        if (
+             tempTracks[i].duration > minTrackLength
+             && (tempTracks[i].freqAverage > lowFreqLimit)
+             && (tempTracks[i].freqAverage < hiFreqLimit)
+             && tempTracks[i].maxAmp > 0
              && nTracks < maxNTracks
              ) {
-
-            Track newTrack(sr, (*listIt).duration(), freqs, amps, (*listIt).startTime(), nTracks);
-
-
-            for (double sampleIt = 0.0; sampleIt <= (*listIt).duration(); sampleIt+=(1.0/float(sr))) {
-                currentAmp = (*listIt).amplitudeAt(sampleIt);
-                newTrack.m_amps.push_back(currentAmp);
-                currentPhase = (*listIt).phaseAt(sampleIt);
-                adjustedPhase = (currentPhase / double(2*M_PI)) + 0.5; // Gamma Sine<> needs phase between 0 and 1
-                newTrack.m_phases.push_back(adjustedPhase);
-                newTrack.m_bandwidths.push_back((*listIt).bandwidthAt(sampleIt));
-            }
-
-            newTrack.endTime = (*listIt).endTime();
-            newTrack.freqAverage = frqAverage;
-            newTrack.rms = rms;
-            newTrack.level = level;
-            newTrack.maxAmp = maximumAmp;
-
-            myTracks.push_back(newTrack);
+            myTracks.push_back(tempTracks[i]);
             ++nTracks;
         }
     }
