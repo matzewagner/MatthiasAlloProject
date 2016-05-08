@@ -10,25 +10,26 @@ struct LorisModel {
     const double FUNDAMENTAL;
 
     vector<Track> myTracks;
+    vector<Track> tempTracks;
     PartialList * partials = NULL;
     double sr;
     unsigned int nSamps;
     int nTracks = 0;
 
     LorisModel(string="Piano_A3.aiff",
-               float=85.0,
-               float=2.5,
-               int=44100,
-               float=0.2,
-               float=0.2,
-               float=0.008,
-               float=0.9,
-               float=-120,
-               float=0.075,
-               float=20,
-               float=1000,
-               int=100,
-               string="pianoModel");
+               float=2.5,   //dur
+               float=85.0,  //f0
+               int=44100,   //sr
+               float=0.2,   //freqResFactor
+               float=0.2,   //freqDriftFactor
+               float=0.008, //hopTime
+               float=0.5,   //freqFloorFactor
+               float=-0.001,     //ampFloor in dB
+               float=0.05,  //minTrackLength
+               float=20,    //freqMin
+               float=10000, //freqMax
+               int=0,     //maxNumTracks
+               string="pianoModel"); //modelName
 
     ~LorisModel() {
         destroyPartialList(partials);
@@ -53,7 +54,6 @@ LorisModel::LorisModel(string fN,
                        )
     : fName(fN), duration(sf_dur), FUNDAMENTAL(fund), sr(s_rate)
 {
-
     static const unsigned long BUFSZ = sr * duration;
     double samples[BUFSZ];
 
@@ -69,12 +69,14 @@ LorisModel::LorisModel(string fN,
     partials = createPartialList();
     analyze(samples, nSamps, sr, partials);
     // output reference .aiff file
-    memset( samples, 0, BUFSZ * sizeof(double) );
+    memset(samples, 0, BUFSZ * sizeof(double) );
     nSamps = synthesize( partials, samples, BUFSZ, sr);
     exportAiff( "reference_synth.aiff", samples, nSamps, sr, 16);
 //        cout << "created reference_synth.aiff for reference" << endl;
 
     int nPartials = partialList_size(partials);
+
+
 
     cout << "Model generated." << "\nNumber of partials: " << nPartials << endl;
 
@@ -112,7 +114,8 @@ LorisModel::LorisModel(string fN,
              && (frqAverage > lowFreqLimit)
              && (frqAverage < hiFreqLimit)
              && maximumAmp > 0
-             && nTracks < maxNTracks) {
+             && nTracks < maxNTracks
+             ) {
 
             Track newTrack(sr, (*listIt).duration(), freqs, amps, (*listIt).startTime(), nTracks);
 
