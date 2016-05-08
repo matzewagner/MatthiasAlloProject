@@ -76,10 +76,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, modelName
             myModels{
-              { filePath[0], 2.0, 440, 44100, 0.2, 0.2, 0.008, 0.25, -80, 0.05, 50, 2000, 100, "pianoA3Model"}, // good
+//              { filePath[0], 6.0, 220, 44100, 0.2, 0.2, 0.008, 0.25, -80, 0.05, 210, 230, 100, "2Sines"}, // good
 //            {"Piano_A4.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
-//            { filePath[0], 2.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA3Model"}, // good
-//            { filePath[3], 2.0, 135, 44100, 0.01, 10, 0.016, 0.25, -360, 0.05, 50, 7500, 200, "Icarus"}, // good
+            { filePath[0], 2.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.05, 50, 15000, 100, "pianoA3Model"}, // good
+            { filePath[3], 2.0, 135, 44100, 0.2, 0.2, 0.008, 0.25, -360, 0.05, 50, 15000, 200, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
@@ -731,11 +731,15 @@ void pollOSC() {
             rotAmount += 0.005;
             cout << "rotation amount: " << rotAmount << endl;
         } else if (k.key() == ';') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i)
+            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+                myModels[modelIndex].myTracks[i].drawHeatMap = false;
                 myModels[modelIndex].myTracks[i].drawAmps = false;
+            }
         } else if (k.key() == ':') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i)
-                myModels[modelIndex].myTracks[i].drawAmps = true;
+            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+                myModels[modelIndex].myTracks[i].drawHeatMap = true;
+                myModels[modelIndex].myTracks[i].drawAmps = false;
+            }
         } else if (k.key() == 'f') {
             loop.set(1.0);
             cout << "Looper on" << endl;
@@ -750,7 +754,7 @@ int main(){
 
     SearchPaths myPath;
     myPath.addAppPaths();
-    string fileName[] = {"sineMelodyN.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Icarus.aiff"};
+    string fileName[] = {"Piano_A3.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Icarus.aiff"};
     for (int i=0; i<NUM_MODELS; ++i) {
         filePath[i] = myPath.find(fileName[i]).filepath();
         cout << "\nfile path " << i << ": " << filePath[i] << endl;

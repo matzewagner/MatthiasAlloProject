@@ -11,10 +11,10 @@ struct Track {
 
     Quatf myRotator;
     gam::Sine<> osc, aMod, fMod;
-    Mesh freqEnv, ampEnv;
+    Mesh freqEnv, ampEnv, heatMap;
     Mesh playHead;
     Mesh box;
-    Color trackColor, playHeadColor, selectedColor;
+    Color trackColor, heatColor, playHeadColor, selectedColor;
     float offColor;
     float audioColor, colorScaler;
     float gainScaler, mute;
@@ -30,7 +30,7 @@ struct Track {
     bool animate;
     bool play, trigger, loopTrack, isReverse;
     float playPosition;
-    bool drawAmps;
+    bool drawAmps, drawHeatMap;
     bool selected, drawSelected;
 
     short usable;
@@ -50,7 +50,7 @@ struct Track {
     double currentPhase;
     int sampleIndex;
 
-    double rms, maxAmp, level;
+    double rms, maxAmp, level, modelPeakAmp;
     float freqAverage;
     float out;
 
@@ -73,6 +73,7 @@ struct Track {
 
         freqEnv.primitive(Graphics::LINE_STRIP);
         ampEnv.primitive(Graphics::LINE_STRIP);
+        heatMap.primitive(Graphics::LINE_STRIP);
         playHead.primitive(Graphics::LINE_STRIP);
         box.primitive(Graphics::LINES);
         spectralPosition = Vec3f(startTime, freqToY - (15000*freqFactor*0.5), 0);
@@ -82,6 +83,7 @@ struct Track {
         velocity = Vec3f(rnd::uniformS(10.0), rnd::uniformS(10.1), rnd::uniformS(10.2))*velocityScaler;
         velocityScaler = 0.66;
         for (int i=0; i<nSamples; ++i) {
+
             freqEnv.vertex(
                         i*float(sampleStep),
                         (m_freqs[i]*freqFactor - freqToY),
@@ -89,6 +91,13 @@ struct Track {
             ampEnv.vertex(
                         i*float(sampleStep),
                         ((m_freqs[0]*freqFactor - freqToY)+m_amps[i]),
+                        0);
+            float thisAmp = abs(m_amps[i])/modelPeakAmp;
+            heatColor = HSV(0.5-thisAmp*5, 1, 0.5);
+            heatMap.color(heatColor);
+            heatMap.vertex(
+                        i*float(sampleStep),
+                        (m_freqs[i]*freqFactor - freqToY),
                         0);
         }
         
@@ -110,6 +119,7 @@ struct Track {
         play = false;
         isReverse = false;
         drawAmps = false;
+        drawHeatMap = false;
         selected = false;
         drawSelected = false;
 
@@ -176,6 +186,8 @@ struct Track {
         if (drawAmps) {
             g.color(trackColor);
             g.draw(ampEnv);
+        } else if (drawHeatMap) {
+            g.draw(heatMap);
         } else {
             g.color(trackColor);
             g.draw(freqEnv);
