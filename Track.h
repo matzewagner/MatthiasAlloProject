@@ -28,7 +28,7 @@ struct Track {
     Vec3f playHeadPosition;
     float positionScaler;
     bool animate;
-    bool play, trigger, loopTrack, isReverse;
+    bool play, trigger, triggerFlag, singleTrigger, loopTrack, isReverse;
     float playPosition;
     bool drawAmps, drawHeatMap;
     bool selected, drawSelected;
@@ -117,6 +117,7 @@ struct Track {
         position = spectralPosition;
         animate = false;
         play = false;
+        triggerFlag = false;
         isReverse = false;
         drawAmps = false;
         drawHeatMap = false;
@@ -209,8 +210,8 @@ struct Track {
         return myVector[sIndex];
     }
 
-    bool resetPlayhead(float start, bool continuePlay) {
-        sampleIndex = start*sr;
+    bool resetPlayhead(float pos, bool continuePlay) {
+        sampleIndex = pos*sr;
         if (sampleIndex > m_freqs.size()-1) {
          sampleIndex = m_freqs.size()-1;
          return false;
@@ -226,18 +227,18 @@ struct Track {
 
     float onSound() {
         if (loopTrack) {
-            if (trigger && !play) {
+            if (singleTrigger && !play) {
                 play = resetPlayhead(playPosition, true);
             }
         } else if (!loopTrack) {
-            if (trigger) {
+            if (singleTrigger) {
                 play = resetPlayhead(playPosition, true);
             }
         }
         if (play) {
-            trigger = false;
+            trigger = singleTrigger = false;
             currentFreq = next(m_freqs, sampleIndex);
-//            osc.phase(next(m_phases, sampleIndex));
+            // osc.phase(next(m_phases, sampleIndex));
             osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
             currentAmp = next(m_amps, sampleIndex);
 

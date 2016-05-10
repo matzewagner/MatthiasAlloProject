@@ -303,7 +303,7 @@ void pollOSC() {
             }
 
             if (trackTrigger[i]->get() == 1.0) {
-                myModels[modelIndex].myTracks[i].trigger = true;
+                myModels[modelIndex].myTracks[i].singleTrigger = true;
             }
             if (!trackLooper)
                 trackTrigger[i]->set(0);
@@ -578,6 +578,9 @@ void pollOSC() {
 
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
                 // trigger each track when trigger reaches its start time
+//                if (myModels[modelIndex].myTracks[i].singleTrigger) {
+//                    myModels[modelIndex].myTracks[i].trigger = true;
+//                }
                 double trackStartTime = myModels[modelIndex].myTracks[i].startTime;
                 if ((trigger >= (trackStartTime*sr) && (trigger <= (trackStartTime*sr)+1))) {
                     myModels[modelIndex].myTracks[i].trigger = true;
@@ -585,14 +588,20 @@ void pollOSC() {
                 // add each agent's sound output to global output
                 s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
                 tap[i].writeSample((s));
+
+//                myModels[modelIndex].myTracks[i].triggerFlag = false;
             }
 
             // if looping, trigger is the modulo of the looplength
             if (looper) {
+                for (int i=0; i<myModels[modelIndex].nTracks; ++i)
+                    myModels[modelIndex].myTracks[i].triggerFlag = true;
                 trigger = fmod(trigger,(loopLength * sr));
             }
             // if triggering manually, set trigger to 0
             if (isTriggerAll) {
+                for (int i=0; i<myModels[modelIndex].nTracks; ++i)
+                    myModels[modelIndex].myTracks[i].triggerFlag = true;
                 trigger = 0;
             }
             // increment trigger timer
