@@ -76,10 +76,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, modelName
             myModels{
-//              { filePath[0], 6.0, 220, 44100, 0.2, 0.2, 0.008, 0.25, -80, 0.05, 210, 230, 100, "2Sines"}, // good
+              { filePath[0], 6.0, 220, 44100, 0.2, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, "2Sines"}, // good
 //            {"Piano_A4.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
 //            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -240, 0.015, 20, 20000, 10, "pianoA3Model"}, // good
-            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.025, 20, 15000, 200, "Icarus"} // good
+//            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.025, 20, 15000, 200, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
@@ -754,7 +754,7 @@ int main(){
 
     SearchPaths myPath;
     myPath.addAppPaths();
-    string fileName[] = {"Piano_A3.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Icarus.aiff"};
+    string fileName[] = {"sineMelodyN.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Icarus.aiff"};
     for (int i=0; i<NUM_MODELS; ++i) {
         filePath[i] = myPath.find(fileName[i]).filepath();
         cout << "\nfile path " << i << ": " << filePath[i] << endl;

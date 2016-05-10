@@ -209,29 +209,29 @@ struct Track {
         return myVector[sIndex];
     }
 
-    void resetPlayhead(float start) {
+    bool resetPlayhead(float start, bool continuePlay) {
         sampleIndex = start*sr;
         if (sampleIndex > m_freqs.size()-1) {
          sampleIndex = m_freqs.size()-1;
-         play = false;
+         return false;
         } else if (sampleIndex < 0) {
             sampleIndex = 0;
-            play = false;
+            return false;
+        } else {
+            osc.phase(next(m_phases, sampleIndex));
+            aMod.phase(1.0/(M_PI*0.5));
+            return continuePlay;
         }
-        osc.phase(next(m_phases, sampleIndex));
-        aMod.phase(1.0/(M_PI*0.5));
     }
 
     float onSound() {
         if (loopTrack) {
             if (trigger && !play) {
-                resetPlayhead(playPosition);
-                play = true;
+                play = resetPlayhead(playPosition, true);
             }
         } else if (!loopTrack) {
             if (trigger) {
-                resetPlayhead(playPosition);
-                play = true;
+                play = resetPlayhead(playPosition, true);
             }
         }
         if (play) {
@@ -245,14 +245,12 @@ struct Track {
                 --sampleIndex;
                 while (sampleIndex < 0) {
                     playPosition = endTime;
-                    play = false;
-                    resetPlayhead(playPosition);
+                    play = resetPlayhead(playPosition, false);
                 }
             } else if (!isReverse) {
                 ++sampleIndex;
                 while (sampleIndex > m_freqs.size()-1) {
-                    play = false;
-                    resetPlayhead(playPosition);
+                    play = resetPlayhead(playPosition, false);
                 }
             }
 
