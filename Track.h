@@ -211,7 +211,7 @@ struct Track {
     }
 
     bool resetPlayhead(float pos, bool continuePlay) {
-        sampleIndex = pos*sr;
+        sampleIndex = pos*sr - startTime*sr;
         if (sampleIndex > m_freqs.size()-1) {
          sampleIndex = m_freqs.size()-1;
          return false;
@@ -228,15 +228,19 @@ struct Track {
     float onSound() {
         if (loopTrack) {
             if (singleTrigger && !play) {
-                play = resetPlayhead(playPosition, true);
+                play = resetPlayhead(startTime, true);
             }
         } else if (!loopTrack) {
             if (singleTrigger) {
-                play = resetPlayhead(playPosition, true);
+                play = resetPlayhead(startTime, true);
             }
         }
+        if (trigger) {
+            play = resetPlayhead(playPosition, true);
+        }
+
         if (play) {
-            trigger = singleTrigger = false;
+            trigger = singleTrigger = triggerFlag = false;
             currentFreq = next(m_freqs, sampleIndex);
             // osc.phase(next(m_phases, sampleIndex));
             osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
@@ -246,12 +250,20 @@ struct Track {
                 --sampleIndex;
                 while (sampleIndex < 0) {
                     playPosition = endTime;
-                    play = resetPlayhead(playPosition, false);
+                    if (loopTrack) {
+                        play = resetPlayhead(endTime, true);
+                    } else {
+                        play = resetPlayhead(playPosition, false);
+                    }
                 }
             } else if (!isReverse) {
                 ++sampleIndex;
                 while (sampleIndex > m_freqs.size()-1) {
-                    play = resetPlayhead(playPosition, false);
+                    if (loopTrack) {
+                        play = resetPlayhead(startTime, true);
+                    } else {
+                        play = resetPlayhead(playPosition, false);
+                    }
                 }
             }
 

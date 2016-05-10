@@ -60,8 +60,8 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     bool trackLooper = false;
     bool isTriggerAll = false;
     bool isReverse = false;
-    float loopLength = 4.0;
-    float playPosition = 0;
+    double loopLength = 4.0;
+    double playPosition = 0;
 
 
     gam::SamplePlayer<> loadBuffer;
@@ -240,7 +240,9 @@ void pollOSC() {
             } else if(!isReverse) {
                 myModels[modelIndex].myTracks[i].isReverse = false;
             }
+
             myModels[modelIndex].myTracks[i].playPosition = playPosition;
+
             if (selectAll.get() == 0) {
                 myModels[modelIndex].myTracks[i].selected = false;
                 state->g_Models[modelIndex].g_Tracks[i].selected = false;
@@ -321,6 +323,7 @@ void pollOSC() {
         else if (loop.get() == 0.0)
             looper = false;
 
+        // reset amps and mods
         if (resetAmp.get() == 1.0) {
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
                 myModels[modelIndex].myTracks[i].gainScaler = 1.0;
@@ -578,18 +581,17 @@ void pollOSC() {
 
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
                 // trigger each track when trigger reaches its start time
-//                if (myModels[modelIndex].myTracks[i].singleTrigger) {
-//                    myModels[modelIndex].myTracks[i].trigger = true;
-//                }
-                double trackStartTime = myModels[modelIndex].myTracks[i].startTime;
-                if ((trigger >= (trackStartTime*sr) && (trigger <= (trackStartTime*sr)+1))) {
+                double trackStartTime = myModels[modelIndex].myTracks[i].startTime*sr;
+                double trackEndTime = myModels[modelIndex].myTracks[i].endTime*sr;
+                double triggerPosition = trigger+(playPosition*sr);
+                if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
                     myModels[modelIndex].myTracks[i].trigger = true;
                 }
                 // add each agent's sound output to global output
                 s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
                 tap[i].writeSample((s));
 
-//                myModels[modelIndex].myTracks[i].triggerFlag = false;
+                myModels[modelIndex].myTracks[i].triggerFlag = false;
             }
 
             // if looping, trigger is the modulo of the looplength
@@ -606,7 +608,6 @@ void pollOSC() {
             }
             // increment trigger timer
             trigger = (++trigger%(300*sr));
-
         }
 
         listener()->pose(nav());
