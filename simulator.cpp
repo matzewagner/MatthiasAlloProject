@@ -39,8 +39,8 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     Light light;
     double time = 0;
-    int trigger = 0, reverseTrigger = 0;
-    float floatTrigger = 0, floatReverseTrigger = 0;
+    int trigger = 0;
+    float floatTrigger = 0;
     double now = 0;
     int target = 1;
     float mappedCircle, sphericalToX, sphericalToY, sphericalToZ;
@@ -78,10 +78,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, modelName
             myModels{
-//              { filePath[0], 4.0, 220, 44100, 0.2, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, "2Sines"}, // good
+              { filePath[0], 4.0, 220, 44100, 0.2, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, "2Sines"}, // good
 //            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
 //            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -240, 0.015, 20, 20000, 10, "pianoA3Model"}, // good
-            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.025, 20, 15000, 200, "Icarus"} // good
+//            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.025, 20, 15000, 200, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
@@ -232,15 +232,14 @@ void pollOSC() {
         soloSelected = solo.get();
         muteSelected = mute.get();
         playPosition = double(playPos.get()*myModels[modelIndex].duration);
-        isReverse = reversePlay.get();
-        globalPlayRate = (playRate.get()*4)-2.0;
+        globalPlayRate = (playRate.get()*10)-5.0;
 
         // unselect all tracks
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             // set playhead position
-            if (isReverse) {
+            if (globalPlayRate < 0) {
                 myModels[modelIndex].myTracks[i].isReverse = true;
-            } else if(!isReverse) {
+            } else if(globalPlayRate > 0) {
                 myModels[modelIndex].myTracks[i].isReverse = false;
             }
 
@@ -576,14 +575,12 @@ void pollOSC() {
             			myModels[modelIndex].myTracks[i].rotatedPosition[2]);
         }
 
-        float trigInSeconds = trigger/float(sr);
         float s = 0;
 
         pollOSC();
 
         while (io()) {
             int triggerPosition = trigger+(playPosition*sr);
-            int reverseTriggerPosition = reverseTrigger+(playPosition*sr);
 
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
                 // trigger each track when trigger reaches its start time
@@ -596,8 +593,8 @@ void pollOSC() {
                         myModels[modelIndex].myTracks[i].trigger = true;
                     }
                 } else if (myModels[modelIndex].myTracks[i].isReverse) {
-                    myModels[modelIndex].myTracks[i].playPosition = double(reverseTriggerPosition/double(sr));
-                    if ((reverseTriggerPosition >= trackStartTime) && (reverseTriggerPosition <= trackEndTime)) {
+                    myModels[modelIndex].myTracks[i].playPosition = double(triggerPosition/double(sr));
+                    if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
                         myModels[modelIndex].myTracks[i].trigger = true;
                     }
                 }
@@ -608,41 +605,42 @@ void pollOSC() {
 
             // if looping, trigger is the modulo of the looplength
             if (looper) {
-                trigger = fmod(int(floatTrigger),(loopLength * sr));
-                reverseTrigger = fmod(int(floatReverseTrigger),(loopLength * sr));
-                if (trigger == 0 || reverseTrigger == 0) {
-                    floatTrigger = floatReverseTrigger = 0;
+                trigger = int(floatTrigger)%int(loopLength * sr);
+
+                if (abs(trigger) < 5) {
                     for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
                         myModels[modelIndex].myTracks[i].triggerFlag = true;
                     }
                 }
+                if (abs(trigger) < 5 && globalPlayRate > 0) floatTrigger = 6.0;
+                else if (abs(trigger) < 5 && globalPlayRate < 0) floatTrigger = -6.0;
+
             }
             // if triggering manually, set trigger to 0
             if (isTriggerAll) {
                 for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
                     myModels[modelIndex].myTracks[i].triggerFlag = true;
                 }
-                trigger = reverseTrigger = 0;
-                floatTrigger = floatReverseTrigger = 0;
+                trigger = 0;
+                floatTrigger = 0;
             }
-            // increment trigger timer
-            trigger = int(floatTrigger)%(300*sr);
-            reverseTrigger = int(floatReverseTrigger)%(300*sr);
 
+            // increment trigger timer
             floatTrigger += globalPlayRate;
-            floatReverseTrigger -= globalPlayRate;
+
+            trigger = int(floatTrigger)%(300*sr);
         }
 
-        int trackNum = 100;
-        cout << "Trigger: " << trigger
-             << "\trevTrigger: " << reverseTrigger
-             << "\tplayRate: " << globalPlayRate
-//             << "\tglobal playPos: " << playPosition
-//             << "\ttrack playpos: " << myModels[modelIndex].myTracks[trackNum].playPosition
-//             << "\tstarPos: " << myModels[modelIndex].myTracks[trackNum].startTime
-//             << "\tendPos: " << myModels[modelIndex].myTracks[trackNum].endTime
-//             << "\tplay: " << bool(myModels[modelIndex].myTracks[trackNum].play)
-             << endl;
+//        int trackNum = 100;
+//        cout << "Trigger: " << trigger
+//             << "\t fTrigger: " << floatTrigger
+//             << "\t playRate: " << globalPlayRate
+//             << "\t global playPos: " << playPosition
+//             << "\t track playpos: " << myModels[modelIndex].myTracks[trackNum].playPosition
+//             << "\t starPos: " << myModels[modelIndex].myTracks[trackNum].startTime
+//             << "\t endPos: " << myModels[modelIndex].myTracks[trackNum].endTime
+//             << "\t play: " << bool(myModels[modelIndex].myTracks[trackNum].play)
+//             << endl;
 
         listener()->pose(nav());
         scene()->render(io);

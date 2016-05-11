@@ -152,7 +152,7 @@
 	
 	var b1 = new Interface.Button({
 		bounds:[slider_x_margin + buttonWidth*0 + margin*0 , (extra_y_margin*1) + (slider_thickness+margin)*6, .1, slider_thickness],
-		label: 'trigger',
+		label: 'trigger all',
 		mode:'momentary',
 		isVertical:false,
 		value:0,
@@ -164,7 +164,7 @@
 	});
 	var b2 = new Interface.Button({
 		bounds:[slider_x_margin + buttonWidth*1 + margin*1 , (extra_y_margin*1) + (slider_thickness+margin)*6, .1, slider_thickness],
-		label: 'loop',
+		label: 'loop all',
 		isVertical:false,
 		value:0,
 		fill: 'olive',
@@ -279,13 +279,52 @@
 			playPosL.setValue( (this.value).toFixed(3) );
 		}
 	});
+		var playRateL = new Interface.Label({
+		bounds:[label_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*9 + label_extra_y_margin, label_length, slider_thickness],
+		hAlign:'center',
+		value:1.0,
+		size:22,
+		stroke:labelStrokeColor,
+	});
+	var playRateS = new Interface.Slider({
+		bounds:[slider_x_margin, (extra_y_margin*1) + (slider_thickness+margin)*9, slider_length, slider_thickness],
+		label: 'playback speed',
+		isVertical:false,
+		value:0.6,
+		fill: 'pink',
+		stroke: 'black',
+		background: sliderBackgroundColor,
+		target: 'OSC',
+		key: '/PlayRate',
+		onvaluechange : function() {
+			playRateL.setValue( ((this.value*10)-5).toFixed(2) );
+		}
+	});
+	var resetPlayrate = new Interface.Button({
+		bounds:[slider_x_margin + buttonWidth*0 + margin*0 , (extra_y_margin*1) + (slider_thickness+margin)*10, .1, slider_thickness],
+		label: 'reset playrate',
+		isVertical:false,
+		mode:'momentary',
+		value:0,
+		fill: 'yellow',
+		stroke: sliderStrokeColor,
+		background: 'grey',
+		target: 'OSC',
+		key:'/ResetPlayRate',
+		onvaluechange : function() {
+			playRateS.setValue( (0.6) );
+			playRateS.sendTargetMessage();
+			playRateL.setValue( (1.0) );
+			playRateL.sendTargetMessage();
+		}
+	});
 
 
 	
 	page1.background = 'black';
-	page1.add(s1, s3, amS, fmS, depthS, loopTimeS, playPosS,
-		  	  l1, l3, amL, fmL, depthL, loopTimeL, playPosL,
-		      b1, b2, b3, b4, b5, b6
+	page1.add(s1, s3, amS, fmS, depthS, loopTimeS, playPosS, playRateS,
+		  	  l1, l3, amL, fmL, depthL, loopTimeL, playPosL, playRateL,
+		      b1, b2, b3, b4, b5, b6, resetPlayrate
 		      );
 
 //-------------------------------------------------------------------
@@ -782,7 +821,7 @@
 	});
 	var selectAll = new Interface.Button({
 		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*10, .1, slider_thickness],
-		label: 'select none',
+		label: 'select all',
 		mode:'toggle',
 		isVertical:false,
 		value:0,
