@@ -30,6 +30,7 @@ struct Track {
     bool animate;
     bool play, trigger, triggerFlag, singleTrigger, loopTrack, isReverse;
     double playPosition;
+    float playRate;
     bool drawAmps, drawHeatMap;
     bool selected, drawSelected;
 
@@ -119,6 +120,7 @@ struct Track {
         play = false;
         triggerFlag = false;
         isReverse = false;
+        playRate = 1.0;
         drawAmps = false;
         drawHeatMap = false;
         selected = false;
