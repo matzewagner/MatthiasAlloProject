@@ -29,7 +29,7 @@ struct Track {
     float positionScaler;
     bool animate;
     bool play, trigger, triggerFlag, singleTrigger, loopTrack, isReverse;
-    float playPosition;
+    double playPosition;
     bool drawAmps, drawHeatMap;
     bool selected, drawSelected;
 
@@ -68,7 +68,7 @@ struct Track {
         ampFactor = 1.0;
         freqFactor = 0.0005;
         freqToY = m_freqs[0]*freqFactor;
-        playPosition = 0;
+        playPosition = 0.0;
         rotAngle = 0;
 
         freqEnv.primitive(Graphics::LINE_STRIP);

@@ -61,7 +61,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     bool isTriggerAll = false;
     bool isReverse = false;
     double loopLength = 4.0;
-    double playPosition = 0;
+    double playPosition = 0.0;
 
 
     gam::SamplePlayer<> loadBuffer;
@@ -76,10 +76,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, modelName
             myModels{
-              { filePath[0], 6.0, 220, 44100, 0.2, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, "2Sines"}, // good
-//            {"Piano_A4.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
+//              { filePath[0], 4.0, 220, 44100, 0.2, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, "2Sines"}, // good
+//            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
 //            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -240, 0.015, 20, 20000, 10, "pianoA3Model"}, // good
-//            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.025, 20, 15000, 200, "Icarus"} // good
+            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.025, 20, 15000, 200, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
@@ -229,7 +229,7 @@ void pollOSC() {
 
         soloSelected = solo.get();
         muteSelected = mute.get();
-        playPosition = playPos.get()*myModels[modelIndex].duration;
+        playPosition = double(playPos.get()*myModels[modelIndex].duration);
         isReverse = reversePlay.get();
 
         // unselect all tracks
@@ -241,7 +241,8 @@ void pollOSC() {
                 myModels[modelIndex].myTracks[i].isReverse = false;
             }
 
-            myModels[modelIndex].myTracks[i].playPosition = playPosition;
+            myModels[modelIndex].myTracks[i].playPosition = playPosition + double(trigger/double(sr));
+//            cout << "Check: " << playPosition + double(trigger/double(sr)) << endl;
 
             if (selectAll.get() == 0) {
                 myModels[modelIndex].myTracks[i].selected = false;
@@ -578,26 +579,27 @@ void pollOSC() {
         pollOSC();
 
         while (io()) {
+            int triggerPosition = trigger+(playPosition*sr);
 
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
                 // trigger each track when trigger reaches its start time
-                double trackStartTime = myModels[modelIndex].myTracks[i].startTime*sr;
-                double trackEndTime = myModels[modelIndex].myTracks[i].endTime*sr;
-                double triggerPosition = trigger+(playPosition*sr);
+                int trackStartTime = myModels[modelIndex].myTracks[i].startTime*sr;
+                int trackEndTime = myModels[modelIndex].myTracks[i].endTime*sr;
+                myModels[modelIndex].myTracks[i].playPosition = double(triggerPosition/double(sr));
                 if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
                     myModels[modelIndex].myTracks[i].trigger = true;
                 }
                 // add each agent's sound output to global output
                 s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
                 tap[i].writeSample((s));
-
-                myModels[modelIndex].myTracks[i].triggerFlag = false;
             }
 
             // if looping, trigger is the modulo of the looplength
             if (looper) {
-                for (int i=0; i<myModels[modelIndex].nTracks; ++i)
-                    myModels[modelIndex].myTracks[i].triggerFlag = true;
+                if (trigger == 0) {
+                    for (int i=0; i<myModels[modelIndex].nTracks; ++i)
+                        myModels[modelIndex].myTracks[i].triggerFlag = true;
+                }
                 trigger = fmod(trigger,(loopLength * sr));
             }
             // if triggering manually, set trigger to 0
@@ -609,6 +611,15 @@ void pollOSC() {
             // increment trigger timer
             trigger = (++trigger%(300*sr));
         }
+
+        int trackNum = 100;
+        cout << "Trigger: " << trigger
+             << "\tglobal playPos: " << playPosition
+             << "\ttrack playpos: " << myModels[modelIndex].myTracks[trackNum].playPosition
+             << "\tstarPos: " << myModels[modelIndex].myTracks[trackNum].startTime
+             << "\tendPos: " << myModels[modelIndex].myTracks[trackNum].endTime
+             << "\tplay: " << bool(myModels[modelIndex].myTracks[trackNum].play)
+             << endl;
 
         listener()->pose(nav());
         scene()->render(io);
