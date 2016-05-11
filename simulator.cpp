@@ -39,7 +39,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     Light light;
     double time = 0;
-    int trigger = 0;
+    int trigger = 0, reverseTrigger = 0;
     double now = 0;
     int target = 1;
     float mappedCircle, sphericalToX, sphericalToY, sphericalToZ;
@@ -580,14 +580,23 @@ void pollOSC() {
 
         while (io()) {
             int triggerPosition = trigger+(playPosition*sr);
+            int reverseTriggerPosition = reverseTrigger+(playPosition*sr);
 
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
                 // trigger each track when trigger reaches its start time
                 int trackStartTime = myModels[modelIndex].myTracks[i].startTime*sr;
                 int trackEndTime = myModels[modelIndex].myTracks[i].endTime*sr;
-                myModels[modelIndex].myTracks[i].playPosition = double(triggerPosition/double(sr));
-                if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
-                    myModels[modelIndex].myTracks[i].trigger = true;
+
+                if (!myModels[modelIndex].myTracks[i].isReverse) {
+                    myModels[modelIndex].myTracks[i].playPosition = double(triggerPosition/double(sr));
+                    if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
+                        myModels[modelIndex].myTracks[i].trigger = true;
+                    }
+                } else if (myModels[modelIndex].myTracks[i].isReverse) {
+                    myModels[modelIndex].myTracks[i].playPosition = double(reverseTriggerPosition/double(sr));
+                    if ((reverseTriggerPosition >= trackStartTime) && (reverseTriggerPosition <= trackEndTime)) {
+                        myModels[modelIndex].myTracks[i].trigger = true;
+                    }
                 }
                 // add each agent's sound output to global output
                 s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
@@ -596,30 +605,33 @@ void pollOSC() {
 
             // if looping, trigger is the modulo of the looplength
             if (looper) {
-                if (trigger == 0) {
+                if (trigger == 0 || reverseTrigger == 0) {
                     for (int i=0; i<myModels[modelIndex].nTracks; ++i)
                         myModels[modelIndex].myTracks[i].triggerFlag = true;
                 }
                 trigger = fmod(trigger,(loopLength * sr));
+                reverseTrigger = fmod(reverseTrigger,(loopLength * sr));
             }
             // if triggering manually, set trigger to 0
             if (isTriggerAll) {
                 for (int i=0; i<myModels[modelIndex].nTracks; ++i)
                     myModels[modelIndex].myTracks[i].triggerFlag = true;
-                trigger = 0;
+                trigger = reverseTrigger = 0;
             }
             // increment trigger timer
             trigger = (++trigger%(300*sr));
+            reverseTrigger = (--reverseTrigger%(300*sr));
         }
 
-        int trackNum = 100;
-        cout << "Trigger: " << trigger
-             << "\tglobal playPos: " << playPosition
-             << "\ttrack playpos: " << myModels[modelIndex].myTracks[trackNum].playPosition
-             << "\tstarPos: " << myModels[modelIndex].myTracks[trackNum].startTime
-             << "\tendPos: " << myModels[modelIndex].myTracks[trackNum].endTime
-             << "\tplay: " << bool(myModels[modelIndex].myTracks[trackNum].play)
-             << endl;
+//        int trackNum = 100;
+//        cout << "Trigger: " << trigger
+//             << "\trevTrigger: " << reverseTrigger
+//             << "\tglobal playPos: " << playPosition
+//             << "\ttrack playpos: " << myModels[modelIndex].myTracks[trackNum].playPosition
+//             << "\tstarPos: " << myModels[modelIndex].myTracks[trackNum].startTime
+//             << "\tendPos: " << myModels[modelIndex].myTracks[trackNum].endTime
+//             << "\tplay: " << bool(myModels[modelIndex].myTracks[trackNum].play)
+//             << endl;
 
         listener()->pose(nav());
         scene()->render(io);
