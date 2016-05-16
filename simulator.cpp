@@ -15,8 +15,9 @@
 #include <loris/Partial.h>
 #include <vector>
 #include <math.h>
-#include "allocore/system/al_Parameter.hpp"
+#include "allocore/ui/al_Parameter.hpp"
 #include <algorithm>
+#include "allocore/types/al_Buffer.hpp"
 
 #include "state.hpp"
 #include "Track.h"
@@ -29,7 +30,7 @@ using namespace std;
 
 osc::Send sender(9010, "127.0.0.1");
 
-string filePath[NUM_MODELS];
+string filePath[5];
 
 // simulator struct
 struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
@@ -37,7 +38,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     cuttlebone::Maker<State, 1400> maker;
     State* state;
 
+    Mesh ball;
+
     Light light;
+    Material material;
     double time = 0;
     int trigger = 0;
     float floatTrigger = 0;
@@ -78,9 +82,9 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, modelName
             myModels{
-              { filePath[0], 4.0, 220, 44100, 0.2, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, "2Sines"}, // good
+//              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, "2Sines"}, // good
 //            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
-//            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -240, 0.015, 20, 20000, 10, "pianoA3Model"}, // good
+            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -240, 0.015, 20, 20000, 100, "pianoA3Model"}, // good
 //            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.025, 20, 15000, 200, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
@@ -114,6 +118,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         AlloSphereAudioSpatializer::initSpatialization();
         // turn this off to preserve performance
         scene()->usePerSampleProcessing(false);
+
+        addSphere(ball, 1, 64, 64);
+        ball.generateNormals();
+        ball.primitive(Graphics::TRIANGLES);
 
         state->colorGain = 300;
         state->frame = 0;
@@ -173,7 +181,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
         // initialize state values
         nav().pos(0, 0, 25);
-        light.pos(0,-10,25);
+        light.pos(nav().pos());
 
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             scene()->addSource(tap[i]);
@@ -440,7 +448,14 @@ void pollOSC() {
 
     virtual void onDraw(Graphics& g, const Viewpoint& v) {
         // draw each agent
+//        Color ballColor = Color(1.0, 0.5, 0.25);
+//        g.pushMatrix();
+//        ball.color(ballColor);
+//        g.draw(ball);
+//        g.popMatrix();
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+            material();
+            light();
             g.pushMatrix();
             g.translate(myModels[modelIndex].myTracks[i].rotatedPosition);
             g.translate(0, 0, 0);
@@ -483,7 +498,7 @@ void pollOSC() {
                 myModels[modelIndex].myTracks[i].position =
                         myModels[modelIndex].myTracks[i].position * (1-time)
                         + myModels[modelIndex].myTracks[i].nullPosition*myModels[modelIndex].myTracks[i].positionScaler*time;
-                xScale = xScale * (1-time) + 0.0*time;
+//                xScale = xScale * (1-time) + 0.0*time;
                 myModels[modelIndex].myTracks[i].animate = false;
             }
         } else if (target == 3) {
@@ -796,8 +811,8 @@ int main(){
 
     SearchPaths myPath;
     myPath.addAppPaths();
-    string fileName[] = {"sineMelodyN.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Icarus.aiff"};
-    for (int i=0; i<NUM_MODELS; ++i) {
+    string fileName[] = {"Piano_A3.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Icarus.aiff", "sineMelodyN.aiff"};
+    for (int i=0; i<5; ++i) {
         filePath[i] = myPath.find(fileName[i]).filepath();
         cout << "\nfile path " << i << ": " << filePath[i] << endl;
     }

@@ -12,6 +12,7 @@ struct Track {
     Quatf myRotator;
     gam::Sine<> osc, aMod, fMod;
     Mesh freqEnv, ampEnv, heatMap;
+    Mesh sphere;
     Mesh playHead;
     Mesh box;
     Color trackColor, heatColor, playHeadColor, selectedColor;
@@ -31,7 +32,7 @@ struct Track {
     bool play, trigger, triggerFlag, singleTrigger, loopTrack, isReverse;
     double playPosition;
     float playRate;
-    bool drawAmps, drawHeatMap;
+    bool drawAmps, drawHeatMap, drawSphere;
     bool selected, drawSelected;
 
     short usable;
@@ -53,7 +54,9 @@ struct Track {
 
     double rms, maxAmp, level, modelPeakAmp;
     float freqAverage;
-    float out;
+
+    float out, prevOut;
+    vector<float> outPut;
 
     Track(int samplingRate, float dur, vector<double>& freqs, vector<double>& amps, float sTime, int t_ID) {
         trackID = t_ID;
@@ -75,8 +78,11 @@ struct Track {
         freqEnv.primitive(Graphics::LINE_STRIP);
         ampEnv.primitive(Graphics::LINE_STRIP);
         heatMap.primitive(Graphics::LINE_STRIP);
+        sphere.primitive(Graphics::TRIANGLES);
         playHead.primitive(Graphics::LINE_STRIP);
         box.primitive(Graphics::LINES);
+        sphere.generateNormals();
+        addSphere(sphere, 1, 64, 64);
         spectralPosition = Vec3f(startTime, freqToY - (15000*freqFactor*0.5), 0);
         nullPosition = Vec3f(0, 0, 0);
         randPosition = Vec3f(rnd::uniformS(L), rnd::uniformS(L), rnd::uniformS(L));
@@ -123,6 +129,7 @@ struct Track {
         playRate = 1.0;
         drawAmps = false;
         drawHeatMap = false;
+        drawSphere = true;
         selected = false;
         drawSelected = false;
 
@@ -136,15 +143,18 @@ struct Track {
     }
 
     void onAnimate(double dt) {
+
         if (play) {
             audioColor = pow(abs(s),1)*colorScaler;
         } else {
             audioColor = 0;
         }
         if (drawAmps)
-            trackColor = RGB( offColor + (1.0 * audioColor), offColor+0.1 + (0.5 * audioColor), offColor + (0.5 * audioColor));
+            trackColor = Color( offColor + (1.0 * audioColor), offColor+0.1 + (0.5 * audioColor), offColor + (0.5 * audioColor), 1.0);
+        else if(drawSphere)
+            trackColor = Color( offColor-0.1 + (1.0 * audioColor), offColor-0.1 + (0.5 * audioColor), offColor-0.1 + (0.5 * audioColor), abs(s));
         else
-            trackColor = RGB( offColor + (1.0 * audioColor), offColor + (0.5 * audioColor), offColor + (0.5 * audioColor));
+            trackColor = Color( offColor + (1.0 * audioColor), offColor + (0.5 * audioColor), offColor + (0.5 * audioColor), 1.0);
 
         selectedColor = RGB(0.5, 0.1, 0.5);
 
@@ -180,6 +190,11 @@ struct Track {
      }
 
     void onDraw(Graphics& g) {
+        for (int i=0; i<outPut.size(); ++i)
+            out += outPut[i];
+        out /= outPut.size();
+        outPut.erase(outPut.begin(),outPut.end());
+
         g.pushMatrix();
         g.color(trackColor);
         if (selected && drawSelected) {
@@ -191,11 +206,16 @@ struct Track {
             g.draw(ampEnv);
         } else if (drawHeatMap) {
             g.draw(heatMap);
+        } else if (drawSphere) {
+            g.pushMatrix();
+            g.scale(out*0.5 + 0.02);
+            g.draw(sphere);
+            g.popMatrix();
         } else {
             g.color(trackColor);
             g.draw(freqEnv);
         }
-        if (play) {
+        if (play && !drawSphere) {
             playHeadPosition[0] = sampleIndex*sampleStep;
             playHeadPosition[1] = next(m_freqs, sampleIndex)*freqFactor - freqToY;
             g.pushMatrix();
@@ -273,8 +293,10 @@ struct Track {
             if (s >= 0.99) s = 0.99;
             else if (s <= -0.99) s = -0.99;
 
+            outPut.push_back(abs(s));
             return s;
         } else {
+            outPut.push_back(abs(s));
             return 0;
         }
     }

@@ -26,7 +26,7 @@ Parameter loop("Loop", "", 0);
 Parameter loopTime("LoopTime", "", 0.8);
 Parameter playPos("PlayPosition", "", 0);
 Parameter loopTrack("LoopTrack", "", 0);
-Parameter playRate("PlayRate", "", 0.75);
+Parameter playRate("PlayRate", "", 0.6);
 Parameter resetAmp("ResetAmps", "", 0);
 Parameter solo("SoloSelected", "", 0);
 Parameter mute("MuteSelected", "", 0);
