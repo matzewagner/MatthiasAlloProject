@@ -13,6 +13,7 @@ struct LorisModel {
     vector<Track> tempTracks;
     PartialList * partials = NULL;
     double sr;
+    double modelEndTime;
     unsigned int nSamps;
     int nTracks = 0, nTempTracks = 0;
     float modelPeakAmp = 0;
@@ -130,6 +131,8 @@ LorisModel::LorisModel(string fN,
         }
 
         newTrack.endTime = (*listIt).endTime();
+        if (newTrack.endTime > modelEndTime)
+            modelEndTime = newTrack.endTime;
         newTrack.freqAverage = frqAverage;
         newTrack.rms = rms;
         newTrack.level = level;

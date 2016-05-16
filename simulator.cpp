@@ -12,6 +12,7 @@
 #include "Gamma/Noise.h"
 #include <loris.h>
 #include <string>
+#include <limits.h>
 #include <loris/Partial.h>
 #include <vector>
 #include <math.h>
@@ -65,10 +66,14 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     bool trackLooper = false;
     bool isTriggerAll = false;
     bool isReverse = false;
+    bool init_trigger_flag = true;
     double loopLength = 4.0;
     double playPosition = 0.0;
     float globalPlayRate = 1.0;
     int drawMode = 0;
+
+    unsigned long compTimer = 0;
+    float scheduleTime = 0;
 
 
     gam::SamplePlayer<> loadBuffer;
@@ -83,10 +88,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, getLoudestTracks, modelName
             myModels{
-//              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, false, "2Sines"}, // good
+              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, false, "2Sines"}, // good
 //            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "pianoA4Model"}, // good
 //            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 100, false, "pianoA3Model"}, // good
-            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 200, true, "Icarus"} // good
+//            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 200, true, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, false, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, false, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "violaA4loVibModel"}, // needs work
@@ -109,6 +114,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     {
 
         modelIndex = 0;
+
         state = new State;
         memset(state, 0, sizeof(State));
         gam::Domain::master().spu(AlloSphereAudioSpatializer::audioIO().fps());
@@ -187,7 +193,6 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             scene()->addSource(tap[i]);
         }
-
     }
 
 void pollOSC() {
@@ -581,8 +586,14 @@ void pollOSC() {
 
     virtual void onSound(AudioIOData &io) {
 
-//        static cuttlebone::Stats fps("onSound()");
-//        fps(AlloSphereAudioSpatializer::audioIO().secondsPerBuffer());
+        pollOSC();
+
+        // set trigger initially to modelEndTime to prevent triggering
+        if (init_trigger_flag) {
+            floatTrigger = myModels[modelIndex].modelEndTime*sr;
+            trigger = int(floatTrigger);
+            init_trigger_flag = false;
+        }
 
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             // calculate each agent's audio position
@@ -593,32 +604,7 @@ void pollOSC() {
 
         float s = 0;
 
-        pollOSC();
-
         while (io()) {
-            int triggerPosition = trigger+(playPosition*sr);
-
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                // trigger each track when trigger reaches its start time
-                int trackStartTime = myModels[modelIndex].myTracks[i].startTime*sr;
-                int trackEndTime = myModels[modelIndex].myTracks[i].endTime*sr;
-
-                if (!myModels[modelIndex].myTracks[i].isReverse) {
-                    myModels[modelIndex].myTracks[i].playPosition = double(triggerPosition/double(sr));
-                    if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
-                        myModels[modelIndex].myTracks[i].trigger = true;
-                    }
-                } else if (myModels[modelIndex].myTracks[i].isReverse) {
-                    myModels[modelIndex].myTracks[i].playPosition = double(triggerPosition/double(sr));
-                    if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
-                        myModels[modelIndex].myTracks[i].trigger = true;
-                    }
-                }
-                // add each agent's sound output to global output
-                s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
-                tap[i].writeSample((s));
-            }
-
             // if looping, trigger is the modulo of the looplength
             if (looper) {
                 trigger = int(floatTrigger)%int(loopLength * sr);
@@ -641,10 +627,37 @@ void pollOSC() {
                 floatTrigger = 0;
             }
 
+            int triggerPosition = trigger+(playPosition*sr);
+
+            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+                // trigger each track when trigger reaches its start time
+                int trackStartTime = myModels[modelIndex].myTracks[i].startTime*sr;
+                int trackEndTime = myModels[modelIndex].myTracks[i].endTime*sr;
+
+                if (!myModels[modelIndex].myTracks[i].isReverse) {
+                    if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
+                        myModels[modelIndex].myTracks[i].playPosition = double(triggerPosition/double(sr));
+                        myModels[modelIndex].myTracks[i].trigger = true;
+                    }
+                } else if (myModels[modelIndex].myTracks[i].isReverse) {
+                    if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
+                        myModels[modelIndex].myTracks[i].playPosition = double(triggerPosition/double(sr));
+                        myModels[modelIndex].myTracks[i].trigger = true;
+                    }
+                }
+                // add each agent's sound output to global output
+                s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
+                tap[i].writeSample((s));
+            }
+
             // increment trigger timer
             floatTrigger += globalPlayRate;
+//            cout << "fT: " << floatTrigger << "\tglPR: " << globalPlayRate << endl;
+            trigger = int(floatTrigger)%(INT_MAX);
 
-            trigger = int(floatTrigger)%(300*sr);
+            // increment composition scheduler
+            ++compTimer%LONG_MAX;
+            scheduleTime = compTimer/float(44100);
         }
 
 //        int trackNum = 100;
