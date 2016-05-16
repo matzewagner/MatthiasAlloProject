@@ -82,28 +82,28 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, modelName
             myModels{
-//              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, "2Sines"}, // good
-//            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "pianoA4Model"}, // good
-            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -240, 0.015, 20, 20000, 100, "pianoA3Model"}, // good
-//            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.025, 20, 15000, 200, "Icarus"} // good
-//            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, "violin248Model"}, // good
-//            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, "violaA4VibModel"}, // needs work
-//            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violaA4loVibModel"}, // needs work
-//            {"Violin_A4_noVib.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "violinA4noVibModel"}, // ok
-//            {"Harpsichord_A4.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.1, 50, 15000, 100, "harpsichordA4Model"}, // needs work
-//            { filePath[2], 3.0, 440, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "trumpetA4Model"}, // ok
-//            { filePath[2], 3.0, 440, 44100, 0.3, 0.2, 0.008, 0.9, -100, 0.05, 50, 15000, 100, "trumpetA3Model"}, // ok
-//            {"Soprano_328Hz.aiff", 2.5, 330, 44100, 0.05, 0.3, 0.008, 0.9, -120, 0.05, 50, 3900, 100, "sopranoModel"}, // needs work
-//            {"Flute_A4_close.aiff", 3.0, 440, 44100, 0.1, 0.2, 0.016, 0.5, -150, 0.05, 50, 15000, 100, "fluteModel"}, // good
-//            {"Clarinet_A4_exp.aiff", 2.5, 440, 44100, 0.1, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "clarinetModel"}, // ok
-//            {"Clarinet_A4_noVib.aiff", 2.5, 443, 44100, 0.2, 0.1, 0.008, 0.5, -150, 0.05, 50, 15000, 100, "clarinetModel"}, // good
-//            {"Clarinet_414Hz.aiff", 2.5, 414, 44100, 0.1, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "clarinetModel"}, // good
-//            {"bendir.aiff", 2.0, 85, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, "bendirModel"}, // good
-//            {"IR.aiff", 1.0, 48, 44100, 0.02, 0.1, 0.024, 0.5, -180, 0.005, 50, 15000, 100, "irModel"}, // not usable
-//            {"Percussion.aiff", 2.0, 49, 44100, 0.2, 0.5, 0.024, 0.5, -180, 0.005, 50, 15000, 100, "percussionModel"}, // not usable
-//            {"Xylophone_1320Hz.aiff", 2.0, 180, 44100, 0.3, 0.2, 0.032, 0.5, -90, 0.005, 50, 15000, 100, "xylophoneModel"}, // not usable
-//            {"Crotales_1327Hz.aiff", 4.0, 1327, 44100, 0.2, 0.3, 0.008, 0.9, -120, 0.01, 50, 18000, 100, "crotalesModel"}, // needs work
-//            {"Bell_152Hz.aiff", 5.0, 152, 44100, 0.2, 0.2, 0.024, 0.5, -120, 0.55, 50, 15000, 100, "bellModel"}, // ok
+//              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, false, "2Sines"}, // good
+//            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "pianoA4Model"}, // good
+//            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -240, 0.015, 20, 20000, 100, false, "pianoA3Model"}, // good
+            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.025, 20, 15000, 200, true, "Icarus"} // good
+//            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, false, "violin248Model"}, // good
+//            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, false, "violaA4VibModel"}, // needs work
+//            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "violaA4loVibModel"}, // needs work
+//            {"Violin_A4_noVib.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "violinA4noVibModel"}, // ok
+//            {"Harpsichord_A4.aiff", 3.0, 440, 44100, 0.15, 0.2, 0.008, 0.5, -150, 0.1, 50, 15000, 100, false, "harpsichordA4Model"}, // needs work
+//            { filePath[2], 3.0, 440, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "trumpetA4Model"}, // ok
+//            { filePath[2], 3.0, 440, 44100, 0.3, 0.2, 0.008, 0.9, -100, 0.05, 50, 15000, 100, false, "trumpetA3Model"}, // ok
+//            {"Soprano_328Hz.aiff", 2.5, 330, 44100, 0.05, 0.3, 0.008, 0.9, -120, 0.05, 50, 3900, 100, false, "sopranoModel"}, // needs work
+//            {"Flute_A4_close.aiff", 3.0, 440, 44100, 0.1, 0.2, 0.016, 0.5, -150, 0.05, 50, 15000, 100, false, "fluteModel"}, // good
+//            {"Clarinet_A4_exp.aiff", 2.5, 440, 44100, 0.1, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, false, "clarinetModel"}, // ok
+//            {"Clarinet_A4_noVib.aiff", 2.5, 443, 44100, 0.2, 0.1, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "clarinetModel"}, // good
+//            {"Clarinet_414Hz.aiff", 2.5, 414, 44100, 0.1, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, false, "clarinetModel"}, // good
+//            {"bendir.aiff", 2.0, 85, 44100, 0.2, 0.2, 0.008, 0.5, -120, 0.05, 50, 15000, 100, false, "bendirModel"}, // good
+//            {"IR.aiff", 1.0, 48, 44100, 0.02, 0.1, 0.024, 0.5, -180, 0.005, 50, 15000, 100, false, "irModel"}, // not usable
+//            {"Percussion.aiff", 2.0, 49, 44100, 0.2, 0.5, 0.024, 0.5, -180, 0.005, 50, 15000, 100, false, "percussionModel"}, // not usable
+//            {"Xylophone_1320Hz.aiff", 2.0, 180, 44100, 0.3, 0.2, 0.032, 0.5, -90, 0.005, 50, 15000, 100, false, "xylophoneModel"}, // not usable
+//            {"Crotales_1327Hz.aiff", 4.0, 1327, 44100, 0.2, 0.3, 0.008, 0.9, -120, 0.01, 50, 18000, 100, false, "crotalesModel"}, // needs work
+//            {"Bell_152Hz.aiff", 5.0, 152, 44100, 0.2, 0.2, 0.024, 0.5, -120, 0.55, 50, 15000, 100, false, "bellModel"}, // ok
             }
     {
 

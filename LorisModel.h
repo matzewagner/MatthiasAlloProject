@@ -30,6 +30,7 @@ struct LorisModel {
                float=20,            //freqMin
                float=10000,         //freqMax
                int=0,               //maxNumTracks
+               bool=false,          //getLoudestTracks
                string="pianoModel"  //modelName
             );
 
@@ -52,6 +53,7 @@ LorisModel::LorisModel(string fN,
                        float lowFreqLimit,
                        float hiFreqLimit,
                        int maxNTracks,
+                       bool getLoudestTracks,
                        string modelName
                        )
     : fName(fN), duration(sf_dur), FUNDAMENTAL(fund), sr(s_rate)
@@ -135,36 +137,38 @@ LorisModel::LorisModel(string fN,
         newTrack.modelPeakAmp = modelPeakAmp;
         newTrack.trackID = nTempTracks;
 
-        tempTracks.push_back(newTrack);
-        ++nTempTracks;
+        if (getLoudestTracks) {
+            tempTracks.push_back(newTrack);
+            ++nTempTracks;
+        } else if (!getLoudestTracks) {
+            if (
+                 newTrack.duration > minTrackLength
+                 && (newTrack.freqAverage > lowFreqLimit)
+                 && (newTrack.freqAverage < hiFreqLimit)
+                 && newTrack.maxAmp > 0
+                 && nTracks < maxNTracks
+                 ) {
+                myTracks.push_back(newTrack);
+                ++nTracks;
+            }
+        }
     }
 
-//        for (int i=0; i<tempTracks.size(); ++i) {
-//            tempTracks[i].nTracks = nTempTracks;
-//            cout << " trackID: " << i
-//                 << " startTime: "<< tempTracks[i].startTime << "\t"
-//                 << " endTime: " << tempTracks[i].endTime << "\t"
-//                 << " duration: " << tempTracks[i].duration << "\t"
-//                 << " nSamples: " << tempTracks[i].nSamples << "\t"
-//                 << "freqAv: " << tempTracks[i].freqAverage << "\t"
-//                 //<< " sr: " << tempTracks[i].sr << "\t"
-//                 << " rms: " << tempTracks[i].rms << "\t"
-//                 << " max: " << tempTracks[i].maxAmp << "\n";
-//        }
-
     // sort tracks according to RMS to ensure we get the all the most prominent partials
-    sort(tempTracks.begin(), tempTracks.end(), featureCompare("rms"));
+    if (getLoudestTracks) {
+        sort(tempTracks.begin(), tempTracks.end(), featureCompare("rms"));
 
-    for (int i=0; i<maxNTracks; ++i) {
-        if (
-             tempTracks[i].duration > minTrackLength
-             && (tempTracks[i].freqAverage > lowFreqLimit)
-             && (tempTracks[i].freqAverage < hiFreqLimit)
-             && tempTracks[i].maxAmp > 0
-             && nTracks < maxNTracks
-             ) {
-            myTracks.push_back(tempTracks[i]);
-            ++nTracks;
+        for (int i=0; i<maxNTracks; ++i) {
+            if (
+                 tempTracks[i].duration > minTrackLength
+                 && (tempTracks[i].freqAverage > lowFreqLimit)
+                 && (tempTracks[i].freqAverage < hiFreqLimit)
+                 && tempTracks[i].maxAmp > 0
+                 && nTracks < maxNTracks
+                 ) {
+                myTracks.push_back(tempTracks[i]);
+                ++nTracks;
+            }
         }
     }
 
