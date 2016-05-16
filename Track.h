@@ -32,7 +32,8 @@ struct Track {
     bool play, trigger, triggerFlag, singleTrigger, loopTrack, isReverse;
     double playPosition;
     float playRate;
-    bool drawAmps, drawHeatMap, drawSphere;
+    bool drawFreqs, drawAmps, drawHeatMap, drawSphere;
+    int drawMode;
     bool selected, drawSelected;
 
     short usable;
@@ -190,6 +191,26 @@ struct Track {
      }
 
     void onDraw(Graphics& g) {
+
+        switch (drawMode) {
+        case 0:
+            drawSphere = true;
+            drawFreqs = drawAmps = drawHeatMap = false;
+            break;
+        case 1:
+            drawFreqs = true;
+            drawSphere = drawAmps = drawHeatMap = false;
+            break;
+        case 2:
+            drawHeatMap = true;
+            drawSphere = drawAmps = drawFreqs = false;
+            break;
+        case 3:
+            drawAmps = true;
+            drawSphere = drawFreqs = drawHeatMap= false;
+            break;
+        }
+
         for (int i=0; i<outPut.size(); ++i)
             out += outPut[i];
         out /= outPut.size();
@@ -211,7 +232,7 @@ struct Track {
             g.scale(out*0.5 + 0.02);
             g.draw(sphere);
             g.popMatrix();
-        } else {
+        } else if (drawFreqs) {
             g.color(trackColor);
             g.draw(freqEnv);
         }

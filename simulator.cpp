@@ -68,6 +68,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     double loopLength = 4.0;
     double playPosition = 0.0;
     float globalPlayRate = 1.0;
+    int drawMode = 0;
 
 
     gam::SamplePlayer<> loadBuffer;
@@ -80,12 +81,12 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     Sim() : maker(Simulator::defaultBroadcastIP()),
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
-    // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, modelName
+    // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, getLoudestTracks, modelName
             myModels{
 //              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, false, "2Sines"}, // good
 //            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "pianoA4Model"}, // good
-//            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -240, 0.015, 20, 20000, 100, false, "pianoA3Model"}, // good
-            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.025, 20, 15000, 200, true, "Icarus"} // good
+//            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 100, false, "pianoA3Model"}, // good
+            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 200, true, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, false, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, false, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "violaA4loVibModel"}, // needs work
@@ -788,14 +789,11 @@ void pollOSC() {
             rotAmount += 0.005;
             cout << "rotation amount: " << rotAmount << endl;
         } else if (k.key() == ';') {
+            ++drawMode;
+            if (drawMode > 3)
+                drawMode = 0;
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].drawHeatMap = false;
-                myModels[modelIndex].myTracks[i].drawAmps = false;
-            }
-        } else if (k.key() == ':') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].drawHeatMap = true;
-                myModels[modelIndex].myTracks[i].drawAmps = false;
+                myModels[modelIndex].myTracks[i].drawMode = drawMode;
             }
         } else if (k.key() == 'f') {
             loop.set(1.0);
