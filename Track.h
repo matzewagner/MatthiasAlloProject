@@ -243,7 +243,12 @@ struct Track {
         }
         if (play && !drawSphere) {
             playHeadPosition[0] = sampleIndex*sampleStep;
-            playHeadPosition[1] = next(m_freqs, sampleIndex)*freqFactor - freqToY;
+            if (drawFreqs || drawHeatMap) {
+                playHeadPosition[1] = next(m_freqs, sampleIndex)*freqFactor - freqToY;
+            }
+            else if (drawAmps) {
+                playHeadPosition[1] = (next(m_freqs, sampleIndex)*freqFactor - freqToY)+next(m_amps, sampleIndex);
+            }
             g.pushMatrix();
             g.color(playHeadColor);
             g.translate(playHeadPosition);

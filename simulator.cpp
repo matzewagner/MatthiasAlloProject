@@ -24,6 +24,7 @@
 #include "Track.h"
 #include "LorisModel.h"
 #include "params.h"
+#include "scheduler.h"
 //#include "pollOSC.h"
 
 using namespace al;
@@ -73,16 +74,14 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     int drawMode = 0;
 
     unsigned long compTimer = 0;
-    float scheduleTime = 0;
-
 
     gam::SamplePlayer<> loadBuffer;
     Reverb<float> reverb;
 
     LorisModel myModels[NUM_MODELS];
+    Scheduler plan;
     int modelIndex;
     SoundSource tap[1000];
-    int numTracks = 100;
 
     Sim() : maker(Simulator::defaultBroadcastIP()),
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
@@ -184,6 +183,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             }
             state->g_Models[j].numTracks = myModels[j].nTracks;
             sr = myModels[modelIndex].sr;
+            plan.setSR(sr);
         }
 
         // initialize state values
@@ -650,14 +650,17 @@ void pollOSC() {
                 tap[i].writeSample((s));
             }
 
+
             // increment trigger timer
             floatTrigger += globalPlayRate;
-//            cout << "fT: " << floatTrigger << "\tglPR: " << globalPlayRate << endl;
             trigger = int(floatTrigger)%(INT_MAX);
 
             // increment composition scheduler
             ++compTimer%LONG_MAX;
-            scheduleTime = compTimer/float(44100);
+
+            plan.setEvent(2.5, compTimer, myModels[modelIndex]);
+            plan.setEvent(3.5, compTimer, myModels[modelIndex]);
+            plan.setEvent(5.5, compTimer, myModels[modelIndex]);
         }
 
 //        int trackNum = 100;
