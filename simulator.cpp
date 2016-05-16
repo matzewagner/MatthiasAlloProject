@@ -25,7 +25,6 @@
 #include "LorisModel.h"
 #include "params.h"
 #include "scheduler.h"
-//#include "pollOSC.h"
 
 using namespace al;
 using namespace std;
@@ -658,9 +657,9 @@ void pollOSC() {
             // increment composition scheduler
             ++compTimer%LONG_MAX;
 
-            plan.setEvent(2.5, compTimer, myModels[modelIndex]);
-            plan.setEvent(3.5, compTimer, myModels[modelIndex]);
-            plan.setEvent(5.5, compTimer, myModels[modelIndex]);
+            plan.setEvent(2.5, compTimer, myModels[modelIndex], "1, 5, 6");
+            plan.setEvent(2.75, compTimer, myModels[modelIndex], "2");
+            plan.setEvent(3.0, compTimer, myModels[modelIndex], "3");
         }
 
 //        int trackNum = 100;
