@@ -128,6 +128,7 @@ struct Track {
         triggerFlag = false;
         isReverse = false;
         playRate = 1.0;
+        drawFreqs = false;
         drawAmps = false;
         drawHeatMap = false;
         drawSphere = true;
@@ -213,7 +214,7 @@ struct Track {
 
         for (int i=0; i<outPut.size(); ++i)
             out += outPut[i];
-        out /= outPut.size();
+        out /= outPut.size()+1;
         outPut.erase(outPut.begin(),outPut.end());
 
         g.pushMatrix();
@@ -222,17 +223,21 @@ struct Track {
             g.color(selectedColor);
             g.draw(box);
         }
+
         if (drawAmps) {
             g.color(trackColor);
             g.draw(ampEnv);
-        } else if (drawHeatMap) {
+        }
+        else if (drawHeatMap) {
             g.draw(heatMap);
-        } else if (drawSphere) {
+        }
+        else if (drawSphere) {
             g.pushMatrix();
             g.scale(out*0.5 + 0.02);
             g.draw(sphere);
             g.popMatrix();
-        } else if (drawFreqs) {
+        }
+        else if (drawFreqs) {
             g.color(trackColor);
             g.draw(freqEnv);
         }
