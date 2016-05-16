@@ -657,9 +657,9 @@ void pollOSC() {
             // increment composition scheduler
             ++compTimer%LONG_MAX;
 
-            plan.setEvent(2.5, compTimer, myModels[modelIndex], "1, 5, 6");
-            plan.setEvent(2.75, compTimer, myModels[modelIndex], "2");
-            plan.setEvent(3.0, compTimer, myModels[modelIndex], "3");
+            plan.setEvent(2.5, compTimer, myModels[modelIndex], "all");
+            plan.setEvent(3.75, compTimer, myModels[modelIndex], "4,2,5,6,7");
+            plan.setEvent(4.0, compTimer, myModels[modelIndex], "3");
         }
 
 //        int trackNum = 100;
