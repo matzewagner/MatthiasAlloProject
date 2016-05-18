@@ -203,7 +203,6 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists) {
     for (int i=0; i<p_Lists.size(); ++i) {
         std::string key = p_Lists[i].key;
 
-        cout << mappedKeys[key] << endl;
         switch (mappedKeys[key]) {
         case PLAY_POS:
             tr.playPosition = p_Lists[i].eventValues[0];
@@ -218,8 +217,7 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists) {
             tr.gainScaler = p_Lists[i].eventValues[0];
             break;
         case AM:
-            tr.AMFreq = 20;
-            cout << "check\t";
+            tr.AMFreq = p_Lists[i].eventValues[0];
             break;
         case FM_FREQ:
             tr.FMFreq = p_Lists[i].eventValues[0];

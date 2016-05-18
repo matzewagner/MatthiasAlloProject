@@ -84,6 +84,7 @@ struct Track {
         box.primitive(Graphics::LINES);
         sphere.generateNormals();
         addSphere(sphere, 1, 64, 64);
+        sphere.generateNormals();
         spectralPosition = Vec3f(startTime, freqToY - (15000*freqFactor*0.5), 0);
         nullPosition = Vec3f(0, 0, 0);
         randPosition = Vec3f(rnd::uniformS(L), rnd::uniformS(L), rnd::uniformS(L));
@@ -145,19 +146,25 @@ struct Track {
     }
 
     void onAnimate(double dt) {
-
+        offColor = 0.25;
         if (play) {
             audioColor = pow(abs(s),1)*colorScaler;
         } else {
             audioColor = 0;
         }
         if (drawAmps)
+        {
             trackColor = Color( offColor + (1.0 * audioColor), offColor+0.1 + (0.5 * audioColor), offColor + (0.5 * audioColor), 1.0);
+        }
         else if(drawSphere)
+        {
+            offColor = 0.3;
             trackColor = Color( offColor-0.1 + (1.0 * audioColor), offColor-0.1 + (0.5 * audioColor), offColor-0.1 + (0.5 * audioColor), abs(s));
+        }
         else
+        {
             trackColor = Color( offColor + (1.0 * audioColor), offColor + (0.5 * audioColor), offColor + (0.5 * audioColor), 1.0);
-
+        }
         selectedColor = RGB(0.5, 0.1, 0.5);
 
         box.reset();
@@ -233,7 +240,7 @@ struct Track {
         }
         else if (drawSphere) {
             g.pushMatrix();
-            g.scale(out*0.5 + 0.02);
+            g.scale(out*2.0 + 0.03);
             g.draw(sphere);
             g.popMatrix();
         }
