@@ -90,21 +90,8 @@ void Scheduler::getTrackIDs(const std::string &trackIDs, vector<int> &trax) {
 
                 s.erase(0, pos + valueDelimiter.length());
         }
-//        std::stringstream ss(trackIDs);
-//        int i=0;
-//        while (ss >> i) {
-//            // add integer to track
-//            trax.push_back(i);
-//            // look at next character and ignore it if it is a delimiter
-//            if (ss.peek() == ',' || ss.peek() == ' ')
-//                ss.ignore();
-
-//        }
-        for (int i=0; i<trax.size(); ++i)
-            cout << trax[i] << "\t";
 
         allTracks = false;
-//        cout << endl;
     }
 }
 

@@ -310,7 +310,8 @@ struct Track {
             osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
             currentAmp = next(m_amps, sampleIndex);
             AMFreq = AMEnv.getEnvValue();
-//            cout << AMFreq << "\t";
+            FMFreq = FMFreqsEnv.getEnvValue();
+            FMAmount = FMAmountEnv.getEnvValue();
             if (isReverse) {
                 --sampleIndex;
                 while (sampleIndex < 0) {

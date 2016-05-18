@@ -56,10 +56,6 @@ void trackEnv::newTrackEnv(const ParamList &source) {
         }
         float lastValue = source.eventValues[segmentsToCompute];
         envelope.push_back(lastValue);
-
-        if (envelope.size() != nSamples+1)
-            cout << "PROBLEMO: \t envSize: " << envelope.size() << "\tnSamples: " << nSamples << endl;
-
     }
 }
 
