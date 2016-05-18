@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <stdarg.h>
+#include <map>
 
 struct ParamList {
     std::string key;
@@ -16,7 +17,6 @@ struct ParamList {
 struct Scheduler {
     int sr;
     bool allTracks;
-    bool gotParams;
 
     // set the sampling rate
     void setSR(int fs);
@@ -27,11 +27,9 @@ struct Scheduler {
     void getTrackIDs(const std::string &trackIDs, vector<int> &trax);
 
     void getParameters(vector<std::string> &params, vector<ParamList> &p_Lists);
+
+    void setParameters(Track &tr,  vector<ParamList> &p_Lists);
 };
-
-//bool Scheduler::allTracks = false;
-
-//bool Scheduler::gotParams = false;
 
 void Scheduler::setSR(int fs) { sr = fs; }
 
@@ -52,22 +50,23 @@ void Scheduler::setEvent(LorisModel &model, const std::string &trackIDs, int nAr
     }
     va_end(args);
 
-//    if (!gotParams)
-        Scheduler::getParameters(parameters, paramLists);
-
+    Scheduler::getParameters(parameters, paramLists);
 
     if (allTracks)
     {
         for (int i=0; i<model.nTracks; ++i) {
+            Scheduler::setParameters(model.myTracks[i], paramLists);
             model.myTracks[i].singleTrigger = true;
         }
-//        allTracks = false;
+        allTracks = false;
     }
     else if (!allTracks)
     {
         for (int i=0; i<tracks.size(); ++i) {
-            if (tracks[i] >= 0 && tracks[i] < model.nTracks)
+            if (tracks[i] >= 0 && tracks[i] < model.nTracks) {
+                Scheduler::setParameters(model.myTracks[tracks[i]], paramLists);
                 model.myTracks[tracks[i]].singleTrigger = true;
+            }
         }
     }
 
@@ -147,7 +146,6 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
 //        if (!foundTimeDelimiter)
 //        {
 //            newList.eventValues.push_back(stof(s));
-//            foundTimeDelimiter = true;
 //        }
 //        // or last time
 //        else if (foundTimeDelimiter)
@@ -176,7 +174,65 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
             cout << p_Lists[j].eventTimes[i] << ", ";
         cout << endl;
     }
-    gotParams = true;
+}
+
+void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists) {
+
+    typedef enum {  PLAY_POS,
+                    PLAY_RATE,
+                    LOOP_TRACK,
+                    AMP,
+                    AM,
+                    FM_FREQ,
+                    FM_AMOUNT,
+                    POS,
+                    numKeys
+                  } key_t;
+
+    static std::map<std::string, key_t> mappedKeys;
+    mappedKeys["PLAY_POS"] = PLAY_POS;
+    mappedKeys["PLAY_RATE"] = PLAY_RATE;
+    mappedKeys["LOOP_TRACK"] = LOOP_TRACK;
+    mappedKeys["AMP"] = AMP;
+    mappedKeys["AM"] = AM;
+    mappedKeys["FM_FREQ"] = FM_FREQ;
+    mappedKeys["FM_AMOUNT"] = FM_AMOUNT;
+    mappedKeys["POS"] = POS;
+
+    // loop over every parameter
+    for (int i=0; i<p_Lists.size(); ++i) {
+        std::string key = p_Lists[i].key;
+
+        cout << mappedKeys[key] << endl;
+        switch (mappedKeys[key]) {
+        case PLAY_POS:
+            tr.playPosition = p_Lists[i].eventValues[0];
+            break;
+        case PLAY_RATE:
+            tr.playPosition = p_Lists[i].eventValues[0];
+            break;
+        case LOOP_TRACK:
+            tr.loopTrack = true;
+            break;
+        case AMP:
+            tr.gainScaler = p_Lists[i].eventValues[0];
+            break;
+        case AM:
+            tr.AMFreq = 20;
+            cout << "check\t";
+            break;
+        case FM_FREQ:
+            tr.FMFreq = p_Lists[i].eventValues[0];
+            break;
+        case FM_AMOUNT:
+            tr.FMAmount = p_Lists[i].eventValues[0];
+            break;
+        case POS:
+            tr.position = Vec3f(0, 0, 0);
+            break;
+
+        }
+    }
 }
 
 
