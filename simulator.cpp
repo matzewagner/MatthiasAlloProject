@@ -187,7 +187,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
         // initialize state values
         nav().pos(0, 0, 25);
-        light.pos(nav().pos());
+        light.pos(0, 20, 0);
 
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             scene()->addSource(tap[i]);
@@ -452,6 +452,8 @@ void pollOSC() {
     }
 
     virtual void onDraw(Graphics& g, const Viewpoint& v) {
+    g.clearColor(0, 0, 0, 1.0);
+    g.clear(Graphics::COLOR_BUFFER_BIT);
         // draw each agent
 //        Color ballColor = Color(1.0, 0.5, 0.25);
 //        g.pushMatrix();
@@ -469,7 +471,7 @@ void pollOSC() {
             g.popMatrix();
         }
 
-        g.clearColor(1.0);
+
     }
 
     virtual void onAnimate(double dt) {
@@ -645,7 +647,7 @@ void pollOSC() {
                     }
                 }
                 // add each agent's sound output to global output
-                s = myModels[modelIndex].myTracks[i].onSound()*globalAmp;
+                s = myModels[modelIndex].myTracks[i].onSound()*globalAmp*5;
                 tap[i].writeSample((s));
             }
 
@@ -657,9 +659,20 @@ void pollOSC() {
             // increment composition scheduler
             ++compTimer%LONG_MAX;
 
-            plan.setEvent(2.5, compTimer, myModels[modelIndex], "all");
-            plan.setEvent(3.75, compTimer, myModels[modelIndex], "4,2,5,6,7");
-            plan.setEvent(4.0, compTimer, myModels[modelIndex], "3");
+            if (compTimer == 3.5*sr ) {
+                plan.setEvent(myModels[modelIndex], "all", 2,
+                              "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0",
+                              "FM: 100, 101, | 0.9, 0.5");
+            }
+            if (compTimer == 3.75*sr ) {
+                plan.setEvent(myModels[modelIndex], "4,2,5,6,7", 2,
+                              "AM: 200, 100, 10, 0 | 0.25, 0.07, 0.1",
+                              "FM: 10");
+            }
+            if (compTimer == 4.0*sr ) {
+                plan.setEvent(myModels[modelIndex], "3, 45", 1,
+                              "AM: 5, -65, 80 | 0.01, 1.0");
+            }
         }
 
 //        int trackNum = 100;
