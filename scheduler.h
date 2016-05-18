@@ -15,8 +15,8 @@ struct ParamList {
 
 struct Scheduler {
     int sr;
-    static bool allTracks;
-    static bool gotParams;
+    bool allTracks;
+    bool gotParams;
 
     // set the sampling rate
     void setSR(int fs);
@@ -29,13 +29,14 @@ struct Scheduler {
     void getParameters(vector<std::string> &params, vector<ParamList> &p_Lists);
 };
 
-bool Scheduler::allTracks = false;
+//bool Scheduler::allTracks = false;
 
-bool Scheduler::gotParams = false;
+//bool Scheduler::gotParams = false;
 
 void Scheduler::setSR(int fs) { sr = fs; }
 
 void Scheduler::setEvent(LorisModel &model, const std::string &trackIDs, int nArgs, ...) {
+
     vector<int> tracks;
     vector<std::string> parameters;
     vector<ParamList> paramLists;
@@ -51,16 +52,16 @@ void Scheduler::setEvent(LorisModel &model, const std::string &trackIDs, int nAr
     }
     va_end(args);
 
-    if (!gotParams) {
+//    if (!gotParams)
         Scheduler::getParameters(parameters, paramLists);
-    }
+
 
     if (allTracks)
     {
         for (int i=0; i<model.nTracks; ++i) {
             model.myTracks[i].singleTrigger = true;
         }
-        allTracks = false;
+//        allTracks = false;
     }
     else if (!allTracks)
     {
@@ -72,6 +73,7 @@ void Scheduler::setEvent(LorisModel &model, const std::string &trackIDs, int nAr
 
 
     tracks.clear();
+    paramLists.clear();
 }
 
 void Scheduler::getTrackIDs(const std::string &trackIDs, vector<int> &trax) {
@@ -106,40 +108,54 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
     for (int i=0; i<params.size(); ++i) {
 
         ParamList newList;
-        std::stringstream ss(params[i]);
-        std::string s;
-        bool gotKey = false;
-        bool gotValues = false;
-        bool gotTimes = false;
+        std::string s = params[i];
+        std::string keyDelimiter = ":";
+        std::string valueDelimiter = ",";
+        std::string timeDelimiter = "|";
+        size_t pos = 0;
 
-        while (ss >> s) {
-//            if (!gotKey) {
-//                // erase colon from string
-//                s.erase(s.end()-1);
-//                // add to ParamList
-//                newList.key = s;
-//                // disable flag
-//                gotKey = true;
-//            }
-//            else if (!gotValues && gotKey)
-//            {
-//                if (s == "|")
-//                {
-//                    gotValues = true;
-//                }
-//                else
-//                {
-//                    s.erase(s.end()-1);
-//                    newList.eventValues.push_back(stof(s));
-//                }
-//            }
-//            else if (gotValues && !gotTimes)
-//            {
-//                s.erase(s.end()-1);
-//                newList.eventTimes.push_back(stof(s));
-//            }
-//            cout << "Key: " << newList.key << "\n" << endl;
+        // get key
+        std::string thisKey = s.substr(0, s.find(keyDelimiter));
+        newList.key = thisKey;
+        s.erase(0, s.find(keyDelimiter) + keyDelimiter.length());
+
+        // get values and times
+        bool foundTimeDelimiter = false;
+        while ( (pos = s.find(valueDelimiter)) != std::string::npos) {
+
+                std::string thisValue = s.substr(0, pos);
+                // look for time delimiter
+                if (thisValue.find(timeDelimiter) != std::string::npos) {
+                    foundTimeDelimiter = true;
+                    thisValue.erase(0, thisValue.find(timeDelimiter) + timeDelimiter.length());
+                }
+                // add event values
+                if (!foundTimeDelimiter)
+                {
+                    newList.eventValues.push_back(stof(thisValue));
+                }
+                // add event times
+                else if (foundTimeDelimiter)
+                {
+                    newList.eventTimes.push_back(stof(thisValue));
+                }
+
+                s.erase(0, pos + valueDelimiter.length());
+                thisValue.clear();
         }
+//        // get last value
+//        if (!foundTimeDelimiter)
+//        {
+//            newList.eventValues.push_back(stof(s));
+//            foundTimeDelimiter = true;
+//        }
+//        // or last time
+//        else if (foundTimeDelimiter)
+//        {
+//            newList.eventTimes.push_back(stof(s));
+//        }
+
+
 //        for (int j=0; j<newList.eventValues.size(); ++j)
 //            cout << newList.eventValues[j] << "\t";
 //        cout << endl;
@@ -149,6 +165,7 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
         p_Lists.push_back(newList);
 
     }
+
     for (int j=0; j<p_Lists.size(); ++j) {
         cout << "Key: " << p_Lists[j].key;
         cout << "\tValues: ";

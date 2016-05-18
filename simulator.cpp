@@ -658,20 +658,36 @@ void pollOSC() {
 
             // increment composition scheduler
             ++compTimer%LONG_MAX;
+            float fTimer = compTimer/float(sr);
+            int sampleTolerance = 1;
 
-            if (compTimer == 3.5*sr ) {
+            if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
                 plan.setEvent(myModels[modelIndex], "all", 2,
-                              "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0",
-                              "FM: 100, 101, | 0.9, 0.5");
+                              "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0,",
+                              "FM: 100, 101, | 0.9, 0.5,");
             }
-            if (compTimer == 3.75*sr ) {
-                plan.setEvent(myModels[modelIndex], "4,2,5,6,7", 2,
-                              "AM: 200, 100, 10, 0 | 0.25, 0.07, 0.1",
-                              "FM: 10");
+            if (compTimer >= 2.1234*sr && compTimer < 2.1234*sr + sampleTolerance) {
+                plan.setEvent(myModels[modelIndex], "0, 1", 2,
+                              "AM: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
+                              "FM: 10,");
             }
-            if (compTimer == 4.0*sr ) {
+            if (compTimer >= 3.0*sr && compTimer < 3.0*sr + sampleTolerance) {
                 plan.setEvent(myModels[modelIndex], "3, 45", 1,
-                              "AM: 5, -65, 80 | 0.01, 1.0");
+                              "AM: 5, -65, 80, | 0.01, 1.0,");
+            }
+            if (compTimer >= 3.5*sr && compTimer < 3.5*sr + sampleTolerance) {
+                plan.setEvent(myModels[modelIndex], "all", 2,
+                              "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0,",
+                              "FM: 100, 101, | 0.9, 0.5,");
+            }
+            if (compTimer >= 4.5*sr && compTimer < 4.5*sr + sampleTolerance) {
+                plan.setEvent(myModels[modelIndex], "0,1", 2,
+                              "AM: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
+                              "FM: 10, 0, | 0,");
+            }
+            if (compTimer >= 5.5*sr && compTimer < 5.5*sr + sampleTolerance) {
+                plan.setEvent(myModels[modelIndex], "3, 45", 1,
+                              "AM: 5, -65, 80, | 0.01, 1.0,");
             }
         }
 
