@@ -71,6 +71,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     double playPosition = 0.0;
     float globalPlayRate = 1.0;
     int drawMode = 0;
+    bool playComp = false;
 
     unsigned long compTimer = 0;
 
@@ -86,10 +87,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, getLoudestTracks, modelName
             myModels{
-//              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, false, "2Sines"}, // good
+              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 1, false, "2Sines"}, // good
 //            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "pianoA4Model"}, // good
 //            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 100, false, "pianoA3Model"}, // good
-            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 200, true, "Icarus"} // good
+//            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 200, true, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, false, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, false, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "violaA4loVibModel"}, // needs work
@@ -587,8 +588,9 @@ void pollOSC() {
 
     virtual void onSound(AudioIOData &io) {
 
-        pollOSC();
-
+        if (!playComp) {
+            pollOSC();
+        }
         // set trigger initially to modelEndTime to prevent triggering
         if (init_trigger_flag) {
             floatTrigger = myModels[modelIndex].modelEndTime*sr;
@@ -661,40 +663,44 @@ void pollOSC() {
             float fTimer = compTimer/float(sr);
             int sampleTolerance = 1;
 
-            if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
-                plan.setEvent(myModels[modelIndex], "all", 2,
-                              "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0,",
-                              "AMP: 0.9, 1.0, | 0.9, 0.5,"
-                              );
-            }
-            if (compTimer >= 2.1234*sr && compTimer < 2.1234*sr + sampleTolerance) {
-                plan.setEvent(myModels[modelIndex], "0, 1", 2,
-                              "FM_FREQ: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
-                              "FM_AMOUNT: 10,"
-                              );
-            }
-            if (compTimer >= 3.0*sr && compTimer < 3.0*sr + sampleTolerance) {
-                plan.setEvent(myModels[modelIndex], "3, 45", 1,
-                              "AM: 5, -65, 80, | 0.01, 1.0,"
-                              );
-            }
-            if (compTimer >= 3.5*sr && compTimer < 3.5*sr + sampleTolerance) {
-                plan.setEvent(myModels[modelIndex], "all", 2,
-                              "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0,",
-                              "FM_AMOUNT: 100, 101, | 0.9, 0.5,",
-                              "FM_FREQ: 40, 101, | 0.9, 0.5,"
-                              );
-            }
-            if (compTimer >= 4.5*sr && compTimer < 4.5*sr + sampleTolerance) {
-                plan.setEvent(myModels[modelIndex], "0,1", 2,
-                              "AM: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
-                              "AMP: .5, 0, | 0,"
-                              );
-            }
-            if (compTimer >= 5.5*sr && compTimer < 5.5*sr + sampleTolerance) {
-                plan.setEvent(myModels[modelIndex], "3, 45", 1,
-                              "POS: 5, -65, 80, | 0.01, 1.0,"
-                              );
+            if (playComp) {
+
+                if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
+                    plan.setEvent(myModels[modelIndex], "all", 1,
+                                  "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0,",
+                                  "AMP: 0.9, 1.0, | 0.9, 0.5,"
+                                  );
+                }
+                if (compTimer >= 2.1234*sr && compTimer < 2.1234*sr + sampleTolerance) {
+                    plan.setEvent(myModels[modelIndex], "0, 1", 2,
+                                  "FM_FREQ: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
+                                  "FM_AMOUNT: 10,"
+                                  );
+                }
+                if (compTimer >= 3.0*sr && compTimer < 3.0*sr + sampleTolerance) {
+                    plan.setEvent(myModels[modelIndex], "3, 45", 1,
+                                  "AM: 5, -65, 80, | 0.01, 1.0,"
+                                  );
+                }
+                if (compTimer >= 3.5*sr && compTimer < 3.5*sr + sampleTolerance) {
+                    plan.setEvent(myModels[modelIndex], "all", 1,
+                                  "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0,",
+                                  "FM_AMOUNT: 100, 101, | 0.9, 0.5,",
+                                  "FM_FREQ: 40, 101, | 0.9, 0.5,"
+                                  );
+                }
+                if (compTimer >= 4.5*sr && compTimer < 4.5*sr + sampleTolerance) {
+                    plan.setEvent(myModels[modelIndex], "0, 1", 1,
+                                  "AM: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
+                                  "AMP: .5, 0, | 0,"
+                                  );
+                }
+                if (compTimer >= 5.5*sr && compTimer < 5.5*sr + sampleTolerance) {
+                    plan.setEvent(myModels[modelIndex], "0, 3, 45", 1,
+                                  "LOOP_TRACK",
+                                  "AM: 5, -65, 800, | 1.0, 20.0,"
+                                  );
+                }
             }
         }
 
@@ -852,7 +858,15 @@ void pollOSC() {
         } else if (k.key() == 'F') {
             loop.set(0);
             cout << "Looper off" << endl;
+        } else if (k.key() == 'p') {
+            playComp = true;
+            compTimer = 0;
+            cout << "playing composition" << endl;
+        } else if (k.key() == 'P') {
+            playComp = false;
+            cout << "live mode" << endl;
         }
+
     }
 };
 

@@ -1,7 +1,9 @@
 //Track.h
 
+#include "ParamList.h"
+#include "trackEnv.h"
+
 using namespace al;
-using namespace std;
 
 struct Track {
     int trackID;
@@ -11,7 +13,9 @@ struct Track {
 
     Quatf myRotator;
     gam::Sine<> osc, aMod, fMod;
-    Mesh freqEnv, ampEnv, heatMap;
+    trackEnv PlayPosEnv, PlayRateEnv, AmpEnv, AMEnv, FMFreqsEnv, FMAmountEnv, PosEnv;
+
+    Mesh freqs, amps, heatMap;
     Mesh sphere;
     Mesh playHead;
     Mesh box;
@@ -59,10 +63,10 @@ struct Track {
     float out, prevOut;
     vector<float> outPut;
 
-    Track(int samplingRate, float dur, vector<double>& freqs, vector<double>& amps, float sTime, int t_ID) {
+    Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>& amps_, float sTime, int t_ID) {
         trackID = t_ID;
-        m_freqs = freqs;
-        m_amps = amps;
+        m_freqs = freqs_;
+        m_amps = amps_;
         currentAmp = 0;
         sampleIndex = 0;
         duration = dur;
@@ -76,8 +80,8 @@ struct Track {
         playPosition = 0.0;
         rotAngle = 0;
 
-        freqEnv.primitive(Graphics::LINE_STRIP);
-        ampEnv.primitive(Graphics::LINE_STRIP);
+        freqs.primitive(Graphics::LINE_STRIP);
+        amps.primitive(Graphics::LINE_STRIP);
         heatMap.primitive(Graphics::LINE_STRIP);
         sphere.primitive(Graphics::TRIANGLES);
         playHead.primitive(Graphics::LINE_STRIP);
@@ -93,11 +97,11 @@ struct Track {
         velocityScaler = 0.66;
         for (int i=0; i<nSamples; ++i) {
 
-            freqEnv.vertex(
+            freqs.vertex(
                         i*float(sampleStep),
                         (m_freqs[i]*freqFactor - freqToY),
                         0);
-            ampEnv.vertex(
+            amps.vertex(
                         i*float(sampleStep),
                         ((m_freqs[0]*freqFactor - freqToY)+m_amps[i]),
                         0);
@@ -233,7 +237,7 @@ struct Track {
 
         if (drawAmps) {
             g.color(trackColor);
-            g.draw(ampEnv);
+            g.draw(amps);
         }
         else if (drawHeatMap) {
             g.draw(heatMap);
@@ -246,7 +250,7 @@ struct Track {
         }
         else if (drawFreqs) {
             g.color(trackColor);
-            g.draw(freqEnv);
+            g.draw(freqs);
         }
         if (play && !drawSphere) {
             playHeadPosition[0] = sampleIndex*sampleStep;
@@ -305,7 +309,8 @@ struct Track {
             // osc.phase(next(m_phases, sampleIndex));
             osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
             currentAmp = next(m_amps, sampleIndex);
-
+            AMFreq = AMEnv.getEnvValue();
+//            cout << AMFreq << "\t";
             if (isReverse) {
                 --sampleIndex;
                 while (sampleIndex < 0) {
@@ -340,6 +345,7 @@ struct Track {
     }
 };
 
+
 struct featureCompare {
   string property;
   featureCompare (string property) {
@@ -358,3 +364,6 @@ struct featureCompare {
           return t1.trackID < t2.trackID;
   }
 };
+
+
+
