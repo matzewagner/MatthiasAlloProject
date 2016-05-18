@@ -20,13 +20,13 @@ void trackEnv::newTrackEnv(const ParamList &source) {
 
     // check how many envelope segments there are
     unsigned int segmentsToCompute = 0;
-    if (source.eventValues.size() < source.eventTimes.size()-1)
+    if (source.eventValues.size() < source.eventTimes.size()+1)
     {
         segmentsToCompute = source.eventValues.size()-1;
     }
     else
     {
-        segmentsToCompute = source.eventTimes.size()-1;
+        segmentsToCompute = source.eventTimes.size();
     }
 
     // if there are no eventTimes to compute, only add one value to the envelope
@@ -46,15 +46,20 @@ void trackEnv::newTrackEnv(const ParamList &source) {
         // for every segment
         for (int i=0; i<segmentsToCompute; ++i) {
             float segmentStart = source.eventValues[i];
-            float segmentEnd = source.eventValues[++i];
+            float segmentEnd = source.eventValues[i+1];
             // compute each sample
-            for (int j=0; j<source.eventTimes[i]*source.sr; ++j) {
-                float value = segmentStart + (segmentEnd-segmentStart)/float(source.eventTimes[i]*source.sr);
+            int segmentSamples = source.eventTimes[i]*source.sr;
+            for (int j=0; j<segmentSamples; ++j) {
+                float value = segmentStart + (((segmentEnd-segmentStart) / float(segmentSamples))*j);
                 envelope.push_back(value);
             }
         }
-        if (envelope.size() != nSamples)
+        float lastValue = source.eventValues[segmentsToCompute];
+        envelope.push_back(lastValue);
+
+        if (envelope.size() != nSamples+1)
             cout << "PROBLEMO: \t envSize: " << envelope.size() << "\tnSamples: " << nSamples << endl;
+
     }
 }
 
@@ -69,7 +74,9 @@ float trackEnv::getEnvValue(void) {
         if (envIndex >= envelope.size()) {
             envIndex = envelope.size()-1;
         }
-//        cout << envelope[envIndex] << endl;
+//        if (envIndex == 0)
+//            cout << envelope[envIndex] << endl;
+
         return envelope[envIndex];
     }
 }

@@ -456,11 +456,6 @@ void pollOSC() {
     g.clearColor(0, 0, 0, 1.0);
     g.clear(Graphics::COLOR_BUFFER_BIT);
         // draw each agent
-//        Color ballColor = Color(1.0, 0.5, 0.25);
-//        g.pushMatrix();
-//        ball.color(ballColor);
-//        g.draw(ball);
-//        g.popMatrix();
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             material();
             light();
@@ -666,41 +661,41 @@ void pollOSC() {
             if (playComp) {
 
                 if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "all", 1,
-                                  "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0,",
-                                  "AMP: 0.9, 1.0, | 0.9, 0.5,"
+                    plan.setEvent(myModels[modelIndex], "all", 2,
+                                  "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2,",
+                                  "LOOP_TRACK"
                                   );
                 }
-                if (compTimer >= 2.1234*sr && compTimer < 2.1234*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "0, 1", 2,
-                                  "FM_FREQ: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
-                                  "FM_AMOUNT: 10,"
-                                  );
-                }
-                if (compTimer >= 3.0*sr && compTimer < 3.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "3, 45", 1,
-                                  "AM: 5, -65, 80, | 0.01, 1.0,"
-                                  );
-                }
-                if (compTimer >= 3.5*sr && compTimer < 3.5*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "all", 1,
-                                  "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0,",
-                                  "FM_AMOUNT: 100, 101, | 0.9, 0.5,",
-                                  "FM_FREQ: 40, 101, | 0.9, 0.5,"
-                                  );
-                }
-                if (compTimer >= 4.5*sr && compTimer < 4.5*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "0, 1", 1,
-                                  "AM: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
-                                  "AMP: .5, 0, | 0,"
-                                  );
-                }
-                if (compTimer >= 5.5*sr && compTimer < 5.5*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "0, 3, 45", 1,
-                                  "LOOP_TRACK",
-                                  "AM: 5, -65, 800, | 1.0, 20.0,"
-                                  );
-                }
+//                if (compTimer >= 2.1234*sr && compTimer < 2.1234*sr + sampleTolerance) {
+//                    plan.setEvent(myModels[modelIndex], "0, 1", 2,
+//                                  "FM_FREQ: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
+//                                  "FM_AMOUNT: 10,"
+//                                  );
+//                }
+//                if (compTimer >= 3.0*sr && compTimer < 3.0*sr + sampleTolerance) {
+//                    plan.setEvent(myModels[modelIndex], "3, 45", 1,
+//                                  "AM: 5, -65, 80, | 0.01, 1.0,"
+//                                  );
+//                }
+//                if (compTimer >= 3.5*sr && compTimer < 3.5*sr + sampleTolerance) {
+//                    plan.setEvent(myModels[modelIndex], "all", 1,
+//                                  "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0,",
+//                                  "FM_AMOUNT: 100, 101, | 0.9, 0.5,",
+//                                  "FM_FREQ: 40, 101, | 0.9, 0.5,"
+//                                  );
+//                }
+//                if (compTimer >= 4.5*sr && compTimer < 4.5*sr + sampleTolerance) {
+//                    plan.setEvent(myModels[modelIndex], "0, 1", 1,
+//                                  "AM: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
+//                                  "AMP: .5, 0, | 0,"
+//                                  );
+//                }
+//                if (compTimer >= 5.5*sr && compTimer < 5.5*sr + sampleTolerance) {
+//                    plan.setEvent(myModels[modelIndex], "0, 3, 45", 1,
+//                                  "LOOP_TRACK",
+//                                  "AM: 5, -65, 800, | 1.0, 20.0,"
+//                                  );
+//                }
             }
         }
 
