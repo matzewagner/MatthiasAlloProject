@@ -90,34 +90,21 @@ void Scheduler::getTrackIDs(const std::string &trackIDs, vector<int> &trax) {
 
                 s.erase(0, pos + valueDelimiter.length());
         }
-//        std::stringstream ss(trackIDs);
-//        int i=0;
-//        while (ss >> i) {
-//            // add integer to track
-//            trax.push_back(i);
-//            // look at next character and ignore it if it is a delimiter
-//            if (ss.peek() == ',' || ss.peek() == ' ')
-//                ss.ignore();
-
-//        }
-        for (int i=0; i<trax.size(); ++i)
-            cout << trax[i] << "\t";
 
         allTracks = false;
-//        cout << endl;
     }
 }
 
 void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_Lists) {
 
-//    cout << params.size() << endl;
+    // for every parameter
     for (int i=0; i<params.size(); ++i) {
-
         ParamList newList;
         std::string s = params[i];
         std::string keyDelimiter = ":";
         std::string valueDelimiter = ",";
         std::string timeDelimiter = "|";
+        std::string repeatModeDelimiter = "[";
         size_t pos = 0;
 
         // get key
@@ -125,8 +112,9 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
         newList.key = thisKey;
         s.erase(0, s.find(keyDelimiter) + keyDelimiter.length());
 
-        // get values and times
+        // get keys, values, times and repeat mode
         bool foundTimeDelimiter = false;
+        bool foundrepeatModeDelimiter = false;
         while ( (pos = s.find(valueDelimiter)) != std::string::npos) {
 
                 std::string thisValue = s.substr(0, pos);
@@ -134,6 +122,14 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
                 if (thisValue.find(timeDelimiter) != std::string::npos) {
                     foundTimeDelimiter = true;
                     thisValue.erase(0, thisValue.find(timeDelimiter) + timeDelimiter.length());
+                }
+                // and repeat mode delimiter
+                if (thisValue.find(repeatModeDelimiter) != std::string::npos) {
+                    foundrepeatModeDelimiter = true;
+                    thisValue.erase(0, thisValue.find(repeatModeDelimiter) + repeatModeDelimiter.length());
+                    std::string closingBracket = "]";
+//                    thisValue.erase(thisValue.find(closingBracket), closingBracket.length());
+                    newList.repeat = thisValue;
                 }
                 // add event values
                 if (!foundTimeDelimiter)
@@ -147,28 +143,9 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
                 }
 
                 s.erase(0, pos + valueDelimiter.length());
-                thisValue.clear();
         }
-//        // get last value
-//        if (!foundTimeDelimiter)
-//        {
-//            newList.eventValues.push_back(std::stof(s));
-//        }
-//        // or last time
-//        else if (foundTimeDelimiter)
-//        {
-//            newList.eventTimes.push_back(std::stof(s));
-//        }
 
-
-//        for (int j=0; j<newList.eventValues.size(); ++j)
-//            cout << newList.eventValues[j] << "\t";
-//        cout << endl;
-//        for (int i=0; i<tracks.size(); ++i)
-//            cout << tracks[i] << "\t";
-//        cout << endl;
         p_Lists.push_back(newList);
-
     }
 
 //    for (int j=0; j<p_Lists.size(); ++j) {
@@ -239,6 +216,9 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
             break;
         case POS:
             tr.PosEnv.newTrackEnv(p_Lists[i]);
+            break;
+
+        default:
             break;
         }
     }

@@ -87,7 +87,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, getLoudestTracks, modelName
             myModels{
-              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, false, "2Sines"}, // good
+              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 1, false, "2Sines"}, // good
 //            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "pianoA4Model"}, // good
 //            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 100, false, "pianoA3Model"}, // good
 //            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 200, true, "Icarus"} // good
@@ -661,9 +661,15 @@ void pollOSC() {
             if (playComp) {
 
                 if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "0,1,2,4,", 2,
+                    plan.setEvent(myModels[modelIndex], "all", 2,
+                                  "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2,",
+                                  "LOOP_TRACK_TRUE:"
+                                  );
+                }
+                if (compTimer >= 5.0*sr && compTimer < 5.0*sr + sampleTolerance) {
+                    plan.setEvent(myModels[modelIndex], "all", 2,
                                   "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, [inf]",
-                                  "LOOP_TRACK_TRUE"
+                                  "LOOP_TRACK_TRUE:"
                                   );
                 }
 //                if (compTimer >= 2.1234*sr && compTimer < 2.1234*sr + sampleTolerance) {

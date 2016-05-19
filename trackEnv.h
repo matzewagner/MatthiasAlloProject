@@ -1,16 +1,18 @@
 // trackEnv.h
+#include "mutex"
 
 struct trackEnv {
     ParamList source;
     vector<float> envelope;
     unsigned int envIndex;
+    std::string repeatMode = "once";
 
-    void newTrackEnv(const ParamList &source);
+    void newTrackEnv(ParamList &source);
 
-    float getEnvValue(void);
+    float getEnvValue();
 };
 
-void trackEnv::newTrackEnv(const ParamList &source) {
+void trackEnv::newTrackEnv(ParamList &source) {
 
     envIndex = 0;
     // return if there are no values to compute
@@ -57,9 +59,11 @@ void trackEnv::newTrackEnv(const ParamList &source) {
         float lastValue = source.eventValues[segmentsToCompute];
         envelope.push_back(lastValue);
     }
+    repeatMode = source.repeat;
 }
 
-float trackEnv::getEnvValue(void) {
+float trackEnv::getEnvValue() {
+    // if envelope has only one value
     if (envelope.empty())
     {
         return 0;
@@ -67,11 +71,21 @@ float trackEnv::getEnvValue(void) {
     else
     {
         ++envIndex;
-        if (envIndex >= envelope.size()) {
-            envIndex = envelope.size()-1;
+        // check what to do when we reach the end of the envelope
+        if (envIndex >= envelope.size())
+        {
+            // stay on last value
+            if (repeatMode == "once")
+            {
+                envIndex = envelope.size()-1;
+            }
+            // or repeat the envelope
+            else if (repeatMode == "inf")
+            {
+                envIndex = 0;
+            }
+
         }
-//        if (envIndex == 0)
-//            cout << envelope[envIndex] << endl;
 
         return envelope[envIndex];
     }

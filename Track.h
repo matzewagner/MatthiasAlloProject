@@ -63,6 +63,7 @@ struct Track {
     float out, prevOut;
     vector<float> outPut;
 
+
     Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>& amps_, float sTime, int t_ID) {
         trackID = t_ID;
         m_freqs = freqs_;
