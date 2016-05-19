@@ -87,10 +87,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, getLoudestTracks, modelName
             myModels{
-//              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, false, "2Sines"}, // good
+             // { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines"}, // good
 //            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "pianoA4Model"}, // good
 //            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 100, false, "pianoA3Model"}, // good
-            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 200, true, "Icarus"} // good
+            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 100, true, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, false, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, false, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "violaA4loVibModel"}, // needs work
@@ -476,20 +476,21 @@ void pollOSC() {
         static cuttlebone::Stats fps("Agent::step");
         fps(dt);
 
-        // use 'time' to lerp between positions
-        time += dt*0.25;
-        if (time > 1) { time = 1; }
-
+        // send values to state
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             myModels[modelIndex].myTracks[i].rotAngle += rotAmount;
             myModels[modelIndex].myTracks[i].onAnimate(dt);
             state->g_Models[modelIndex].g_Tracks[i].position = myModels[modelIndex].myTracks[i].rotatedPosition;
             state->g_Models[modelIndex].g_Tracks[i].playHeadPosition = myModels[modelIndex].myTracks[i].playHeadPosition;
             state->g_Models[modelIndex].g_Tracks[i].play = myModels[modelIndex].myTracks[i].play;
-            state->g_Models[modelIndex].g_Tracks[i].sample = myModels[modelIndex].myTracks[i].s;
+            state->g_Models[modelIndex].g_Tracks[i].sample = myModels[modelIndex].myTracks[i].out;
             state->g_Models[modelIndex].g_Tracks[i].drawMode = myModels[modelIndex].myTracks[i].drawMode;
+            state->g_Models[modelIndex].g_Tracks[i].offColor = myModels[modelIndex].myTracks[i].offColor;
         }
 
+        // use 'time' to lerp between positions
+        time += dt*0.25;
+        if (time > 1) { time = 1; }
 
         if (target == 1) {
             for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
@@ -583,6 +584,7 @@ void pollOSC() {
         state->modelIndex = modelIndex;
         state->frame++;
         state->pose = nav();
+        state->lightPos = nav().pos();
         maker.set(*state);
     }
 

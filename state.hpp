@@ -3,7 +3,7 @@
 
 #define L 10
 #define NUM_MODELS 4
-#define N_TRACKS 100
+#define N_TRACKS 200
 
 struct g_Track {
 	// values to be sent continuously
@@ -27,6 +27,7 @@ struct g_Model {
 
 struct State {
     Pose pose;
+    Vec3f lightPos;
     g_Model g_Models[NUM_MODELS];
     unsigned short modelIndex;
     double eyeSeparation, nearClip, farClip;
