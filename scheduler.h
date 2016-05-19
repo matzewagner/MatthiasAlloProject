@@ -17,7 +17,7 @@ struct Scheduler {
     void setSR(int fs);
 
     // schedule an event
-    void setEvent(LorisModel &model, const std::string &trackIDs, int nArgs, ...);
+    void setEvent(LorisModel model, const std::string &trackIDs, int nArgs, ...);
 
     void getTrackIDs(const std::string &trackIDs, vector<int> &trax);
 
@@ -28,7 +28,7 @@ struct Scheduler {
 
 void Scheduler::setSR(int fs) { sr = fs; }
 
-void Scheduler::setEvent(LorisModel &model, const std::string &trackIDs, int nArgs, ...) {
+void Scheduler::setEvent(LorisModel model, const std::string &trackIDs, int nArgs, ...) {
 
     vector<int> tracks;
     vector<std::string> parameters;

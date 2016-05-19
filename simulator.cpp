@@ -78,19 +78,19 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     gam::SamplePlayer<> loadBuffer;
     Reverb<float> reverb;
 
-    LorisModel myModels[NUM_MODELS];
+    LorisModel *myModels[NUM_MODELS];
     Scheduler plan;
     int modelIndex;
     SoundSource tap[1000];
 
     Sim() : maker(Simulator::defaultBroadcastIP()),
-            InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
+            InterfaceServerClient(Simulator::defaultInterfaceServerIP())
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, getLoudestTracks, modelName
-            myModels{
-             // { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines"}, // good
+//            myModels{
+//              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines"}, // good
 //            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "pianoA4Model"}, // good
 //            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 100, false, "pianoA3Model"}, // good
-            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 100, true, "Icarus"} // good
+            // { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 100, true, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, false, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, false, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "violaA4loVibModel"}, // needs work
@@ -109,8 +109,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 //            {"Xylophone_1320Hz.aiff", 2.0, 180, 44100, 0.3, 0.2, 0.032, 0.5, -90, 0.005, 50, 15000, 100, false, "xylophoneModel"}, // not usable
 //            {"Crotales_1327Hz.aiff", 4.0, 1327, 44100, 0.2, 0.3, 0.008, 0.9, -120, 0.01, 50, 18000, 100, false, "crotalesModel"}, // needs work
 //            {"Bell_152Hz.aiff", 5.0, 152, 44100, 0.2, 0.2, 0.024, 0.5, -120, 0.55, 50, 15000, 100, false, "bellModel"}, // ok
-            }
+//            }
     {
+
+        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
 
         modelIndex = 0;
 
@@ -138,10 +140,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
 
         for (int j=0; j<NUM_MODELS; ++j) {
-            sort(myModels[j].myTracks.begin(), myModels[j].myTracks.end(), featureCompare("rms"));
+            sort(myModels[j]->myTracks.begin(), myModels[j]->myTracks.end(), featureCompare("rms"));
 
             int x=0, y=0;
-            for (int i=0; i<myModels[j].myTracks.size(); ++i) {
+            for (int i=0; i<myModels[j]->myTracks.size(); ++i) {
                 tap[i].dopplerType(DOPPLER_NONE);
                 tap[i].useAttenuation(true);
 //                tap[i].law(ATTEN_INVERSE_SQUARE);
@@ -150,39 +152,38 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
 				// set positions for individual tracks
                 float wallScaler = 1.0;
-                x = i % int(sqrt(myModels[j].myTracks.size()));
+                x = i % int(sqrt(myModels[j]->myTracks.size()));
                 if (x == 0)
                     ++y;
-                myModels[j].myTracks[i].squarePosition = Vec3f(
-                                                x*wallScaler - ((sqrt(myModels[j].myTracks.size())/2.0)*wallScaler),
-                                                y*wallScaler - ((sqrt(myModels[j].myTracks.size())/2.0)*wallScaler),
+                myModels[j]->myTracks[i].squarePosition = Vec3f(
+                                                x*wallScaler - ((sqrt(myModels[j]->myTracks.size())/2.0)*wallScaler),
+                                                y*wallScaler - ((sqrt(myModels[j]->myTracks.size())/2.0)*wallScaler),
                                                 0.0
                                                 );
-                int circleIndex = (i + int(myModels[j].nTracks*0.75)) % myModels[j].nTracks;
-                mappedCircle = circleIndex * (2.0*M_PI/float(myModels[j].nTracks));
-                myModels[j].myTracks[i].circlePosition = Vec3f(sin(mappedCircle)*rad, 0, cos(mappedCircle)*rad);
+                int circleIndex = (i + int(myModels[j]->nTracks*0.75)) % myModels[j]->nTracks;
+                mappedCircle = circleIndex * (2.0*M_PI/float(myModels[j]->nTracks));
+                myModels[j]->myTracks[i].circlePosition = Vec3f(sin(mappedCircle)*rad, 0, cos(mappedCircle)*rad);
 
                 float angle = rnd::uniform(M_PI*2.0);
                 sphericalToX = rad * sin(angle) * cos(mappedCircle);
                 sphericalToY = rad * sin(angle) * sin(mappedCircle);
                 sphericalToZ = rad * cos(angle);
-                myModels[j].myTracks[i].spherePosition = Vec3f(sphericalToX, sphericalToY, sphericalToZ);
+                myModels[j]->myTracks[i].spherePosition = Vec3f(sphericalToX, sphericalToY, sphericalToZ);
 
-                myModels[j].myTracks[int(myModels[j].nTracks - (i+1))].linePosition = Vec3f(0, 0, ((i*lineLength)-(lineLength*myModels[j].nTracks*0.75))/float(myModels[j].nTracks));
+                myModels[j]->myTracks[int(myModels[j]->nTracks - (i+1))].linePosition = Vec3f(0, 0, ((i*lineLength)-(lineLength*myModels[j]->nTracks*0.75))/float(myModels[j]->nTracks));
 
-                float freqScaler = myModels[modelIndex].myTracks[0].freqFactor*3;
-                myModels[j].myTracks[i].hiFreqsClosestPos = Vec3f(0, 0, (15000*freqScaler) - myModels[j].myTracks[i].freqAverage*freqScaler);
+                float freqScaler = myModels[modelIndex]->myTracks[0].freqFactor*3;
+                myModels[j]->myTracks[i].hiFreqsClosestPos = Vec3f(0, 0, (15000*freqScaler) - myModels[j]->myTracks[i].freqAverage*freqScaler);
 
-                myModels[j].myTracks[i].loudestAwayPos = Vec3f(0, 0, -myModels[j].myTracks[i].level*0.001);
-
+                myModels[j]->myTracks[i].loudestAwayPos = Vec3f(0, 0, -myModels[j]->myTracks[i].level*0.001);
                 // set state values for individual tracks
-                state->g_Models[j].g_Tracks[i].offColor = myModels[j].myTracks[i].offColor;
-                state->g_Models[j].g_Tracks[i].nSamples = myModels[j].myTracks[i].nSamples;
-                state->g_Models[j].g_Tracks[i].sampleStep = myModels[j].myTracks[i].sampleStep;
-                state->g_Models[j].g_Tracks[i].colorScaler = myModels[j].myTracks[i].colorScaler;
+                state->g_Models[j].g_Tracks[i].offColor = myModels[j]->myTracks[i].offColor;
+                state->g_Models[j].g_Tracks[i].nSamples = myModels[j]->myTracks[i].nSamples;
+                state->g_Models[j].g_Tracks[i].sampleStep = myModels[j]->myTracks[i].sampleStep;
+                state->g_Models[j].g_Tracks[i].colorScaler = myModels[j]->myTracks[i].colorScaler;
             }
-            state->g_Models[j].numTracks = myModels[j].nTracks;
-            sr = myModels[modelIndex].sr;
+            state->g_Models[j].numTracks = myModels[j]->nTracks;
+            sr = myModels[modelIndex]->sr;
             plan.setSR(sr);
         }
 
@@ -190,7 +191,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         nav().pos(0, 0, 25);
         light.pos(nav().pos());
 
-        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
             scene()->addSource(tap[i]);
         }
     }
@@ -245,84 +246,84 @@ void pollOSC() {
 
         soloSelected = solo.get();
         muteSelected = mute.get();
-        playPosition = double(playPos.get()*myModels[modelIndex].duration);
+        playPosition = double(playPos.get()*myModels[modelIndex]->duration);
         globalPlayRate = (playRate.get()*10)-5.0;
 
         // unselect all tracks
-        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
             // set playhead position
             if (globalPlayRate < 0) {
-                myModels[modelIndex].myTracks[i].isReverse = true;
+                myModels[modelIndex]->myTracks[i].isReverse = true;
             } else if(globalPlayRate > 0) {
-                myModels[modelIndex].myTracks[i].isReverse = false;
+                myModels[modelIndex]->myTracks[i].isReverse = false;
             }
 
-            myModels[modelIndex].myTracks[i].playRate = globalPlayRate;
-            myModels[modelIndex].myTracks[i].playPosition = playPosition + double(trigger/double(sr));
+            myModels[modelIndex]->myTracks[i].playRate = globalPlayRate;
+            myModels[modelIndex]->myTracks[i].playPosition = playPosition + double(trigger/double(sr));
 
             if (selectAll.get() == 0) {
-                myModels[modelIndex].myTracks[i].selected = false;
+                myModels[modelIndex]->myTracks[i].selected = false;
                 state->g_Models[modelIndex].g_Tracks[i].selected = false;
                 if (soloSelected) {
-                    myModels[modelIndex].myTracks[i].mute = 0.0;
+                    myModels[modelIndex]->myTracks[i].mute = 0.0;
                 }
                 else {
-                    myModels[modelIndex].myTracks[i].mute = 1.0;
+                    myModels[modelIndex]->myTracks[i].mute = 1.0;
                 }
             }
 
             else if (selectAll.get() == 1.0) {
-                myModels[modelIndex].myTracks[i].selected = true;
+                myModels[modelIndex]->myTracks[i].selected = true;
                 state->g_Models[modelIndex].g_Tracks[i].selected = false;
             }
             if (drawSelected.get() == 1.0) {
-                myModels[modelIndex].myTracks[i].drawSelected = true;
+                myModels[modelIndex]->myTracks[i].drawSelected = true;
             }
             else {
-                myModels[modelIndex].myTracks[i].drawSelected = false;
+                myModels[modelIndex]->myTracks[i].drawSelected = false;
             }
 
         }
 
         // select / unselect tracks
         if (selectNone.get() == 1.0) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 trackSelector[i]->set(0);
-                myModels[modelIndex].myTracks[i].selected = false;
+                myModels[modelIndex]->myTracks[i].selected = false;
                 state->g_Models[modelIndex].g_Tracks[i].selected = false;
             }
             selectNone.set(0);
         }
 
-        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
             if (trackSelector[i]->get() == 1.0) {
-                myModels[modelIndex].myTracks[i].selected = true;
+                myModels[modelIndex]->myTracks[i].selected = true;
                 state->g_Models[modelIndex].g_Tracks[i].selected = true;
                 if (muteSelected) {
-                    myModels[modelIndex].myTracks[i].mute = 0.0;
+                    myModels[modelIndex]->myTracks[i].mute = 0.0;
                 }
                 else {
-                    myModels[modelIndex].myTracks[i].mute = 1.0;
+                    myModels[modelIndex]->myTracks[i].mute = 1.0;
                 }
 
-                myModels[modelIndex].myTracks[i].gainScaler = amp.get()*50.0;
-                myModels[modelIndex].myTracks[i].AMFreq = amFreq.get()*1000;
-                myModels[modelIndex].myTracks[i].FMFreq = fmFreq.get()*1000;
-                myModels[modelIndex].myTracks[i].FMAmount = modDepth.get()*100;
+                myModels[modelIndex]->myTracks[i].gainScaler = amp.get()*50.0;
+                myModels[modelIndex]->myTracks[i].AMFreq = amFreq.get()*1000;
+                myModels[modelIndex]->myTracks[i].FMFreq = fmFreq.get()*1000;
+                myModels[modelIndex]->myTracks[i].FMAmount = modDepth.get()*100;
             }
         }
 
         // triggering
         trackLooper = loopTrack.get();
-        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
             if (trackLooper) {
-                myModels[modelIndex].myTracks[i].loopTrack = true;
+                myModels[modelIndex]->myTracks[i].loopTrack = true;
             } else if (!trackLooper) {
-                myModels[modelIndex].myTracks[i].loopTrack = false;
+                myModels[modelIndex]->myTracks[i].loopTrack = false;
             }
 
             if (trackTrigger[i]->get() == 1.0) {
-                myModels[modelIndex].myTracks[i].singleTrigger = true;
+                myModels[modelIndex]->myTracks[i].singleTrigger = true;
             }
             if (!trackLooper)
                 trackTrigger[i]->set(0);
@@ -342,12 +343,12 @@ void pollOSC() {
 
         // reset amps and mods
         if (resetAmp.get() == 1.0) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].gainScaler = 1.0;
-                myModels[modelIndex].myTracks[i].AMFreq = 0.0;
-                myModels[modelIndex].myTracks[i].aMod.phase(1.0/float(M_PI*0.5));
-                myModels[modelIndex].myTracks[i].FMFreq = 0.0;
-                myModels[modelIndex].myTracks[i].FMAmount = 0.0;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].gainScaler = 1.0;
+                myModels[modelIndex]->myTracks[i].AMFreq = 0.0;
+                myModels[modelIndex]->myTracks[i].aMod.phase(1.0/float(M_PI*0.5));
+                myModels[modelIndex]->myTracks[i].FMFreq = 0.0;
+                myModels[modelIndex]->myTracks[i].FMAmount = 0.0;
             }
             cout << "all amps reset\n";
             amp.set(1.0/50.0);
@@ -365,8 +366,8 @@ void pollOSC() {
             currentTarget = target = 2;
         } else if (randPos.get() == 1.0 && currentTarget != 3) {
             time = 0;
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i)
-                myModels[modelIndex].myTracks[i].randPosition = Vec3f(rnd::uniformS(rad), rnd::uniformS(rad), rnd::uniformS(rad));
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i)
+                myModels[modelIndex]->myTracks[i].randPosition = Vec3f(rnd::uniformS(rad), rnd::uniformS(rad), rnd::uniformS(rad));
             currentTarget = target = 3;
         } else if (circlePos.get() == 1.0 && currentTarget != 4) {
             time = 0;
@@ -379,12 +380,12 @@ void pollOSC() {
             currentTarget = target = 6;
         } else if (spherePos.get() == 1.0 && currentTarget != 7) {
             time = 0;
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                mappedCircle = i * (2.0*M_PI/float(myModels[modelIndex].nTracks));
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                mappedCircle = i * (2.0*M_PI/float(myModels[modelIndex]->nTracks));
                 sphericalToX = rad * sin(mappedCircle) * cos(rnd::uniform(360));
                 sphericalToY = rad * sin(mappedCircle) * sin(rnd::uniform(360));
                 sphericalToZ = rad * cos(mappedCircle);
-                myModels[modelIndex].myTracks[i].spherePosition = Vec3f(sphericalToX, sphericalToY, sphericalToZ);
+                myModels[modelIndex]->myTracks[i].spherePosition = Vec3f(sphericalToX, sphericalToY, sphericalToZ);
             }
             currentTarget = target = 7;
         } else if (squarePos.get() == 1.0 && currentTarget != 8) {
@@ -395,15 +396,15 @@ void pollOSC() {
 
         if (animate.get() == 1.0) target = 0;
         else if (animate.get() == 0.0) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i)
-                myModels[modelIndex].myTracks[i].animate = false;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i)
+                myModels[modelIndex]->myTracks[i].animate = false;
         }
 
 
         if (velocity.get() != currentVelocity) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 for (int j=0; j<3; ++j)
-                    myModels[modelIndex].myTracks[i].velocity[j] = rnd::uniformS(pow(velocity.get(),2)*5000);
+                    myModels[modelIndex]->myTracks[i].velocity[j] = rnd::uniformS(pow(velocity.get(),2)*5000);
             }
             currentVelocity = velocity.get();
         }
@@ -415,32 +416,32 @@ void pollOSC() {
         Zrotation = (rotZ.get()*10) - 5.0;
 
         accumRotation = accRot.get();
-        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
             if (accumRotation) {
-                myModels[modelIndex].myTracks[i].rotAngle += rotator;
+                myModels[modelIndex]->myTracks[i].rotAngle += rotator;
             } else {
-                myModels[modelIndex].myTracks[i].rotAngle = rotator;
+                myModels[modelIndex]->myTracks[i].rotAngle = rotator;
             }
-            myModels[modelIndex].myTracks[i].rX = Xrotation;
-            myModels[modelIndex].myTracks[i].rY = Yrotation;
-            myModels[modelIndex].myTracks[i].rZ = Zrotation;
+            myModels[modelIndex]->myTracks[i].rX = Xrotation;
+            myModels[modelIndex]->myTracks[i].rY = Yrotation;
+            myModels[modelIndex]->myTracks[i].rZ = Zrotation;
         }
 
         resetRotation = resetRot.get();
         if (resetRotation == 1.0) {
             accRot.set(0.0);
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].rotAngle = 0;
-                myModels[modelIndex].myTracks[i].rX = 0;
-                myModels[modelIndex].myTracks[i].rY = 0;
-                myModels[modelIndex].myTracks[i].rZ = 0;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].rotAngle = 0;
+                myModels[modelIndex]->myTracks[i].rX = 0;
+                myModels[modelIndex]->myTracks[i].rY = 0;
+                myModels[modelIndex]->myTracks[i].rZ = 0;
             }
         }
 
         // size scaler
         manualScaler = scaler.get()*10;
-        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-            myModels[modelIndex].myTracks[i].positionScaler = manualScaler;
+        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+            myModels[modelIndex]->myTracks[i].positionScaler = manualScaler;
         }
         currentManualScaler = manualScaler;
 
@@ -460,14 +461,14 @@ void pollOSC() {
     g.depthTesting(true);
 
         // draw each agent
-        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
             material();
             light();
             g.pushMatrix();
-            g.translate(myModels[modelIndex].myTracks[i].rotatedPosition);
+            g.translate(myModels[modelIndex]->myTracks[i].rotatedPosition);
             g.translate(0, 0, 0);
             g.scale(xScale, 1.0, 1.0);
-            myModels[modelIndex].myTracks[i].onDraw(g);
+            myModels[modelIndex]->myTracks[i].onDraw(g);
             g.popMatrix();
         }
     }
@@ -477,15 +478,15 @@ void pollOSC() {
         fps(dt);
 
         // send values to state
-        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-            myModels[modelIndex].myTracks[i].rotAngle += rotAmount;
-            myModels[modelIndex].myTracks[i].onAnimate(dt);
-            state->g_Models[modelIndex].g_Tracks[i].position = myModels[modelIndex].myTracks[i].rotatedPosition;
-            state->g_Models[modelIndex].g_Tracks[i].playHeadPosition = myModels[modelIndex].myTracks[i].playHeadPosition;
-            state->g_Models[modelIndex].g_Tracks[i].play = myModels[modelIndex].myTracks[i].play;
-            state->g_Models[modelIndex].g_Tracks[i].sample = myModels[modelIndex].myTracks[i].out;
-            state->g_Models[modelIndex].g_Tracks[i].drawMode = myModels[modelIndex].myTracks[i].drawMode;
-            state->g_Models[modelIndex].g_Tracks[i].offColor = myModels[modelIndex].myTracks[i].offColor;
+        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+            myModels[modelIndex]->myTracks[i].rotAngle += rotAmount;
+            myModels[modelIndex]->myTracks[i].onAnimate(dt);
+            state->g_Models[modelIndex].g_Tracks[i].position = myModels[modelIndex]->myTracks[i].rotatedPosition;
+            state->g_Models[modelIndex].g_Tracks[i].playHeadPosition = myModels[modelIndex]->myTracks[i].playHeadPosition;
+            state->g_Models[modelIndex].g_Tracks[i].play = myModels[modelIndex]->myTracks[i].play;
+            state->g_Models[modelIndex].g_Tracks[i].sample = myModels[modelIndex]->myTracks[i].out;
+            state->g_Models[modelIndex].g_Tracks[i].drawMode = myModels[modelIndex]->myTracks[i].drawMode;
+            state->g_Models[modelIndex].g_Tracks[i].offColor = myModels[modelIndex]->myTracks[i].offColor;
         }
 
         // use 'time' to lerp between positions
@@ -493,77 +494,77 @@ void pollOSC() {
         if (time > 1) { time = 1; }
 
         if (target == 1) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].position =
-                        myModels[modelIndex].myTracks[i].position * (1-time)
-                        + myModels[modelIndex].myTracks[i].spectralPosition*myModels[modelIndex].myTracks[i].positionScaler*time;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].position =
+                        myModels[modelIndex]->myTracks[i].position * (1-time)
+                        + myModels[modelIndex]->myTracks[i].spectralPosition*myModels[modelIndex]->myTracks[i].positionScaler*time;
                 xScale = xScale * (1-time) + 1.0*time;
-                myModels[modelIndex].myTracks[i].animate = false;
+                myModels[modelIndex]->myTracks[i].animate = false;
             }
         } else if (target == 2) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].position =
-                        myModels[modelIndex].myTracks[i].position * (1-time)
-                        + myModels[modelIndex].myTracks[i].nullPosition*myModels[modelIndex].myTracks[i].positionScaler*time;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].position =
+                        myModels[modelIndex]->myTracks[i].position * (1-time)
+                        + myModels[modelIndex]->myTracks[i].nullPosition*myModels[modelIndex]->myTracks[i].positionScaler*time;
 //                xScale = xScale * (1-time) + 0.0*time;
-                myModels[modelIndex].myTracks[i].animate = false;
+                myModels[modelIndex]->myTracks[i].animate = false;
             }
         } else if (target == 3) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].position =
-                        myModels[modelIndex].myTracks[i].position * (1-time)
-                        + myModels[modelIndex].myTracks[i].randPosition*myModels[modelIndex].myTracks[i].positionScaler*time;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].position =
+                        myModels[modelIndex]->myTracks[i].position * (1-time)
+                        + myModels[modelIndex]->myTracks[i].randPosition*myModels[modelIndex]->myTracks[i].positionScaler*time;
                 xScale = xScale * (1-time) + 1.0*time;
-                myModels[modelIndex].myTracks[i].animate = false;
+                myModels[modelIndex]->myTracks[i].animate = false;
             }
         } else if (target == 4) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].position =
-                        myModels[modelIndex].myTracks[i].position * (1-time)
-                        + myModels[modelIndex].myTracks[i].circlePosition*myModels[modelIndex].myTracks[i].positionScaler*time;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].position =
+                        myModels[modelIndex]->myTracks[i].position * (1-time)
+                        + myModels[modelIndex]->myTracks[i].circlePosition*myModels[modelIndex]->myTracks[i].positionScaler*time;
                 xScale = xScale * (1-time) + 1.0*time;
-                myModels[modelIndex].myTracks[i].animate = false;
+                myModels[modelIndex]->myTracks[i].animate = false;
             }
         } else if (target == 5) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].position =
-                        myModels[modelIndex].myTracks[i].position * (1-time)
-                        + myModels[modelIndex].myTracks[i].linePosition*myModels[modelIndex].myTracks[i].positionScaler*time;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].position =
+                        myModels[modelIndex]->myTracks[i].position * (1-time)
+                        + myModels[modelIndex]->myTracks[i].linePosition*myModels[modelIndex]->myTracks[i].positionScaler*time;
                 xScale = xScale * (1-time) + 1.0*time;
-                myModels[modelIndex].myTracks[i].animate = false;
+                myModels[modelIndex]->myTracks[i].animate = false;
             }
         } else if (target == 6) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].position =
-                        myModels[modelIndex].myTracks[i].position * (1-time)
-                        + myModels[modelIndex].myTracks[i].hiFreqsClosestPos*myModels[modelIndex].myTracks[i].positionScaler*time;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].position =
+                        myModels[modelIndex]->myTracks[i].position * (1-time)
+                        + myModels[modelIndex]->myTracks[i].hiFreqsClosestPos*myModels[modelIndex]->myTracks[i].positionScaler*time;
                 xScale = xScale * (1-time) + 1.0*time;
-                myModels[modelIndex].myTracks[i].animate = false;
+                myModels[modelIndex]->myTracks[i].animate = false;
             }
         } else if (target == 7) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].position =
-                        myModels[modelIndex].myTracks[i].position * (1-time)
-                        + myModels[modelIndex].myTracks[i].spherePosition*myModels[modelIndex].myTracks[i].positionScaler*time;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].position =
+                        myModels[modelIndex]->myTracks[i].position * (1-time)
+                        + myModels[modelIndex]->myTracks[i].spherePosition*myModels[modelIndex]->myTracks[i].positionScaler*time;
                 xScale = xScale * (1-time) + 1.0*time;
-                myModels[modelIndex].myTracks[i].animate = false;
+                myModels[modelIndex]->myTracks[i].animate = false;
             }
         } else if (target == 8) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].position =
-                        myModels[modelIndex].myTracks[i].position * (1-time)
-                        + myModels[modelIndex].myTracks[i].squarePosition*myModels[modelIndex].myTracks[i].positionScaler*time;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].position =
+                        myModels[modelIndex]->myTracks[i].position * (1-time)
+                        + myModels[modelIndex]->myTracks[i].squarePosition*myModels[modelIndex]->myTracks[i].positionScaler*time;
                 xScale = xScale * (1-time) + 1.0*time;
-                myModels[modelIndex].myTracks[i].animate = false;
+                myModels[modelIndex]->myTracks[i].animate = false;
             }
         } else if (target == 0) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 xScale = xScale * (1-time) + 1.0*time;
-                myModels[modelIndex].myTracks[i].animate = true;
+                myModels[modelIndex]->myTracks[i].animate = true;
             }
         } else if (target == 9) {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].animate = false;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].animate = false;
             }
         }
 
@@ -595,16 +596,16 @@ void pollOSC() {
         }
         // set trigger initially to modelEndTime to prevent triggering
         if (init_trigger_flag) {
-            floatTrigger = myModels[modelIndex].modelEndTime*sr;
+            floatTrigger = myModels[modelIndex]->modelEndTime*sr;
             trigger = int(floatTrigger);
             init_trigger_flag = false;
         }
 
-        for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
             // calculate each agent's audio position
-            tap[i].pos(myModels[modelIndex].myTracks[i].rotatedPosition[0],
-            			myModels[modelIndex].myTracks[i].rotatedPosition[1],
-            			myModels[modelIndex].myTracks[i].rotatedPosition[2]);
+            tap[i].pos(myModels[modelIndex]->myTracks[i].rotatedPosition[0],
+                        myModels[modelIndex]->myTracks[i].rotatedPosition[1],
+                        myModels[modelIndex]->myTracks[i].rotatedPosition[2]);
         }
 
         float s = 0;
@@ -615,8 +616,8 @@ void pollOSC() {
                 trigger = int(floatTrigger)%int(loopLength * sr);
 
                 if (abs(trigger) < 5) {
-                    for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                        myModels[modelIndex].myTracks[i].triggerFlag = true;
+                    for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                        myModels[modelIndex]->myTracks[i].triggerFlag = true;
                     }
                 }
                 if (abs(trigger) < 5 && globalPlayRate > 0) floatTrigger = 6.0;
@@ -625,8 +626,8 @@ void pollOSC() {
             }
             // if triggering manually, set trigger to 0
             if (isTriggerAll) {
-                for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                    myModels[modelIndex].myTracks[i].triggerFlag = true;
+                for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                    myModels[modelIndex]->myTracks[i].triggerFlag = true;
                 }
                 trigger = 0;
                 floatTrigger = 0;
@@ -634,24 +635,24 @@ void pollOSC() {
 
             int triggerPosition = trigger+(playPosition*sr);
 
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 // trigger each track when trigger reaches its start time
-                int trackStartTime = myModels[modelIndex].myTracks[i].startTime*sr;
-                int trackEndTime = myModels[modelIndex].myTracks[i].endTime*sr;
+                int trackStartTime = myModels[modelIndex]->myTracks[i].startTime*sr;
+                int trackEndTime = myModels[modelIndex]->myTracks[i].endTime*sr;
 
-                if (!myModels[modelIndex].myTracks[i].isReverse) {
+                if (!myModels[modelIndex]->myTracks[i].isReverse) {
                     if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
-                        myModels[modelIndex].myTracks[i].playPosition = double(triggerPosition/double(sr));
-                        myModels[modelIndex].myTracks[i].trigger = true;
+                        myModels[modelIndex]->myTracks[i].playPosition = double(triggerPosition/double(sr));
+                        myModels[modelIndex]->myTracks[i].trigger = true;
                     }
-                } else if (myModels[modelIndex].myTracks[i].isReverse) {
+                } else if (myModels[modelIndex]->myTracks[i].isReverse) {
                     if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
-                        myModels[modelIndex].myTracks[i].playPosition = double(triggerPosition/double(sr));
-                        myModels[modelIndex].myTracks[i].trigger = true;
+                        myModels[modelIndex]->myTracks[i].playPosition = double(triggerPosition/double(sr));
+                        myModels[modelIndex]->myTracks[i].trigger = true;
                     }
                 }
                 // add each agent's sound output to global output
-                s = myModels[modelIndex].myTracks[i].onSound()*globalAmp*5;
+                s = myModels[modelIndex]->myTracks[i].onSound()*globalAmp*5;
                 tap[i].writeSample((s));
             }
 
@@ -668,13 +669,13 @@ void pollOSC() {
             if (playComp) {
 
                 if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "all", 2,
+                    plan.setEvent(*myModels[modelIndex], "all", 2,
                                   "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2,",
                                   "LOOP_TRACK_FALSE:"
                                   );
                 }
                 if (compTimer >= 5.0*sr && compTimer < 5.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "all", 2,
+                    plan.setEvent(*myModels[modelIndex], "all", 2,
                                   "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, [inf]",
                                   "LOOP_TRACK_FALSE:"
                                   );
@@ -717,10 +718,10 @@ void pollOSC() {
 //             << "\t fTrigger: " << floatTrigger
 //             << "\t playRate: " << globalPlayRate
 //             << "\t global playPos: " << playPosition
-//             << "\t track playpos: " << myModels[modelIndex].myTracks[trackNum].playPosition
-//             << "\t starPos: " << myModels[modelIndex].myTracks[trackNum].startTime
-//             << "\t endPos: " << myModels[modelIndex].myTracks[trackNum].endTime
-//             << "\t play: " << bool(myModels[modelIndex].myTracks[trackNum].play)
+//             << "\t track playpos: " << myModels[modelIndex]->myTracks[trackNum].playPosition
+//             << "\t starPos: " << myModels[modelIndex]->myTracks[trackNum].startTime
+//             << "\t endPos: " << myModels[modelIndex]->myTracks[trackNum].endTime
+//             << "\t play: " << bool(myModels[modelIndex]->myTracks[trackNum].play)
 //             << endl;
 
         listener()->pose(nav());
@@ -735,8 +736,8 @@ void pollOSC() {
         } else if (k.key() == '2') {
             target = 2;
         } else if (k.key() == '3') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i)
-                myModels[modelIndex].myTracks[i].randPosition = Vec3f(rnd::uniformS(L), rnd::uniformS(L), rnd::uniformS(L));
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i)
+                myModels[modelIndex]->myTracks[i].randPosition = Vec3f(rnd::uniformS(L), rnd::uniformS(L), rnd::uniformS(L));
             target = 3;
         } else if (k.key() == '4') {
             target = 4;
@@ -751,100 +752,100 @@ void pollOSC() {
         } else if (k.key() == ' ') {
             target = 10;
         } else if (k.key() == '-') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].gainScaler -= 1.0;
-                if (myModels[modelIndex].myTracks[i].gainScaler < 0.0)
-                    myModels[modelIndex].myTracks[i].gainScaler = 0.0;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].gainScaler -= 1.0;
+                if (myModels[modelIndex]->myTracks[i].gainScaler < 0.0)
+                    myModels[modelIndex]->myTracks[i].gainScaler = 0.0;
             }
-            cout << "\ngainScale: " << myModels[modelIndex].myTracks[0].gainScaler << endl;
+            cout << "\ngainScale: " << myModels[modelIndex]->myTracks[0].gainScaler << endl;
         } else if (k.key() == '=') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].gainScaler += 1.0;
-                if (myModels[modelIndex].myTracks[i].gainScaler < 0.0)
-                    myModels[modelIndex].myTracks[i].gainScaler = 0.0;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].gainScaler += 1.0;
+                if (myModels[modelIndex]->myTracks[i].gainScaler < 0.0)
+                    myModels[modelIndex]->myTracks[i].gainScaler = 0.0;
             }
-            cout << "\ngainScale: " << myModels[modelIndex].myTracks[0].gainScaler << endl;
+            cout << "\ngainScale: " << myModels[modelIndex]->myTracks[0].gainScaler << endl;
         } else if (k.key() == 'm') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                    myModels[modelIndex].myTracks[i].gainScaler = 0.0;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                    myModels[modelIndex]->myTracks[i].gainScaler = 0.0;
             }
-            cout << "\ngainScale: " << myModels[modelIndex].myTracks[0].gainScaler << endl;
+            cout << "\ngainScale: " << myModels[modelIndex]->myTracks[0].gainScaler << endl;
         } else if (k.key() == '{') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].oscAmount -= 0.1;
-                if (myModels[modelIndex].myTracks[i].oscAmount < 0.0)
-                    myModels[modelIndex].myTracks[i].oscAmount = 0.0;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].oscAmount -= 0.1;
+                if (myModels[modelIndex]->myTracks[i].oscAmount < 0.0)
+                    myModels[modelIndex]->myTracks[i].oscAmount = 0.0;
             }
-            cout << "\noscillator amount: " << myModels[modelIndex].myTracks[0].oscAmount << endl;
+            cout << "\noscillator amount: " << myModels[modelIndex]->myTracks[0].oscAmount << endl;
         } else if (k.key() == '}') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].oscAmount += 0.1;
-                if (myModels[modelIndex].myTracks[i].oscAmount < 0.0)
-                    myModels[modelIndex].myTracks[i].oscAmount = 0.0;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].oscAmount += 0.1;
+                if (myModels[modelIndex]->myTracks[i].oscAmount < 0.0)
+                    myModels[modelIndex]->myTracks[i].oscAmount = 0.0;
             }
-            cout << "\noscillator amount: " << myModels[modelIndex].myTracks[0].oscAmount << endl;
+            cout << "\noscillator amount: " << myModels[modelIndex]->myTracks[0].oscAmount << endl;
         } else if (k.key() == '[') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].noiseAmount -= 0.5;
-                if (myModels[modelIndex].myTracks[i].noiseAmount < 0.0)
-                    myModels[modelIndex].myTracks[i].noiseAmount = 0.0;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].noiseAmount -= 0.5;
+                if (myModels[modelIndex]->myTracks[i].noiseAmount < 0.0)
+                    myModels[modelIndex]->myTracks[i].noiseAmount = 0.0;
             }
-            cout << "\nnoise amount: " << myModels[modelIndex].myTracks[0].noiseAmount << endl;
+            cout << "\nnoise amount: " << myModels[modelIndex]->myTracks[0].noiseAmount << endl;
         } else if (k.key() == ']') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].noiseAmount += 0.5;
-                if (myModels[modelIndex].myTracks[i].noiseAmount < 0.0)
-                    myModels[modelIndex].myTracks[i].noiseAmount = 0.0;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].noiseAmount += 0.5;
+                if (myModels[modelIndex]->myTracks[i].noiseAmount < 0.0)
+                    myModels[modelIndex]->myTracks[i].noiseAmount = 0.0;
             }
-            cout << "\nnoise amount: " << myModels[modelIndex].myTracks[0].noiseAmount << endl;
+            cout << "\nnoise amount: " << myModels[modelIndex]->myTracks[0].noiseAmount << endl;
         } else if (k.key() == '(') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].velocityScaler /= 1.5;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].velocityScaler /= 1.5;
                 for (int j=0; j<3; ++j)
                     if (j != 1)
-                        myModels[modelIndex].myTracks[i].velocity[j] = rnd::uniformS(myModels[modelIndex].myTracks[i].velocityScaler);
-                if (myModels[modelIndex].myTracks[i].velocityScaler < 0.0)
-                    myModels[modelIndex].myTracks[i].velocityScaler = 0.1;
+                        myModels[modelIndex]->myTracks[i].velocity[j] = rnd::uniformS(myModels[modelIndex]->myTracks[i].velocityScaler);
+                if (myModels[modelIndex]->myTracks[i].velocityScaler < 0.0)
+                    myModels[modelIndex]->myTracks[i].velocityScaler = 0.1;
             }
-            cout << "\nvelocityScaler: " << myModels[modelIndex].myTracks[0].velocityScaler << endl;
+            cout << "\nvelocityScaler: " << myModels[modelIndex]->myTracks[0].velocityScaler << endl;
         } else if (k.key() == ')') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].velocityScaler *= 1.5;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].velocityScaler *= 1.5;
                 for (int j=0; j<3; ++j)
                     if (j != 1)
-                        myModels[modelIndex].myTracks[i].velocity[j] = rnd::uniformS(myModels[modelIndex].myTracks[i].velocityScaler);
-                if (myModels[modelIndex].myTracks[i].velocityScaler < 0.0)
-                    myModels[modelIndex].myTracks[i].velocityScaler = 0.1;
+                        myModels[modelIndex]->myTracks[i].velocity[j] = rnd::uniformS(myModels[modelIndex]->myTracks[i].velocityScaler);
+                if (myModels[modelIndex]->myTracks[i].velocityScaler < 0.0)
+                    myModels[modelIndex]->myTracks[i].velocityScaler = 0.1;
             }
-            cout << "\nvelocityScaler: " << myModels[modelIndex].myTracks[0].velocityScaler << endl;
+            cout << "\nvelocityScaler: " << myModels[modelIndex]->myTracks[0].velocityScaler << endl;
         } else if (k.key() == 't') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].rX += 0.1;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].rX += 0.1;
             }
             cout << "X rotation: " << rX << endl;
         } else if (k.key() == 'T') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].rX -= 0.1;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].rX -= 0.1;
             }
             cout << "X rotation: " << rX << endl;
         } else if (k.key() == 'g') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].rY += 0.1;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].rY += 0.1;
             }
             cout << "Y rotation: " << rY << endl;
         } else if (k.key() == 'G') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].rY -= 0.1;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].rY -= 0.1;
             }
             cout << "Y rotation: " << rY << endl;
         } else if (k.key() == 'b') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].rZ += 0.1;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].rZ += 0.1;
             }
             cout << "Z rotation: " << rZ << endl;
         } else if (k.key() == 'B') {
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].rZ -= 0.1;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].rZ -= 0.1;
             }
             cout << "Z rotation: " << rZ << endl;
         } else if (k.key() == ',') {
@@ -857,8 +858,8 @@ void pollOSC() {
             ++drawMode;
             if (drawMode > 3)
                 drawMode = 0;
-            for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
-                myModels[modelIndex].myTracks[i].drawMode = drawMode;
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].drawMode = drawMode;
             }
         } else if (k.key() == 'f') {
             loop.set(1.0);
