@@ -34,6 +34,7 @@ struct Track {
     float positionScaler;
     bool animate;
     bool play, trigger, triggerFlag, singleTrigger, loopTrack, isReverse;
+    bool compMode;
     double playPosition;
     float playRate;
     bool drawFreqs, drawAmps, drawHeatMap, drawSphere;
@@ -140,6 +141,7 @@ struct Track {
         drawSphere = true;
         selected = false;
         drawSelected = false;
+        compMode = false;
 
         osc.freq(m_freqs[0]);
         aMod.freq(0.0);
@@ -232,8 +234,18 @@ struct Track {
         g.pushMatrix();
         g.color(trackColor);
         if (selected && drawSelected) {
+            if (!drawSphere) {
             g.color(selectedColor);
             g.draw(box);
+            }
+            else
+            {
+                g.pushMatrix();
+                g.color(selectedColor);
+                g.scale(out*2.0 + 0.03);
+                g.draw(sphere);
+                g.popMatrix();
+            }
         }
 
         if (drawAmps) {
@@ -310,9 +322,11 @@ struct Track {
             // osc.phase(next(m_phases, sampleIndex));
             osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
             currentAmp = next(m_amps, sampleIndex);
-            AMFreq = AMEnv.getEnvValue();
-            FMFreq = FMFreqsEnv.getEnvValue();
-            FMAmount = FMAmountEnv.getEnvValue();
+            if (compMode) {
+                AMFreq = AMEnv.getEnvValue();
+                FMFreq = FMFreqsEnv.getEnvValue();
+                FMAmount = FMAmountEnv.getEnvValue();
+            }
             if (isReverse) {
                 --sampleIndex;
                 while (sampleIndex < 0) {

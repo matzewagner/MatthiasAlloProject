@@ -36,7 +36,7 @@ struct LorisModel {
             );
 
     ~LorisModel() {
-//        destroyPartialList(partials);
+        destroyPartialList(partials);
     }
 };
 
