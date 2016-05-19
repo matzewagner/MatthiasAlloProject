@@ -87,10 +87,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             InterfaceServerClient(Simulator::defaultInterfaceServerIP()),
     // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, getLoudestTracks, modelName
             myModels{
-              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 1, false, "2Sines"}, // good
+//              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 10, false, "2Sines"}, // good
 //            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "pianoA4Model"}, // good
 //            { filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 100, false, "pianoA3Model"}, // good
-//            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 200, true, "Icarus"} // good
+            { filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 200, true, "Icarus"} // good
 //            { filePath[1], 3.0, 248, 44100, 0.2, 0.2, 0.008, 0.5, -180, 0.015, 50, 15000, 200, false, "violin248Model"}, // good
 //            {"Viola_A4_vib.aiff", 3.0, 440, 44100, 0.2, 0.2, 0.004, 0.5, -90, 0.05, 50, 15000, 100, false, "violaA4VibModel"}, // needs work
 //            {"Viola_A4_loVib.aiff", 3.0, 440, 44100, 0.05, 0.05, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "violaA4loVibModel"}, // needs work
@@ -125,9 +125,9 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         // turn this off to preserve performance
         scene()->usePerSampleProcessing(false);
 
-        addSphere(ball, 1, 64, 64);
-        ball.generateNormals();
-        ball.primitive(Graphics::TRIANGLES);
+//        addSphere(ball, 1, 64, 64);
+//        ball.generateNormals();
+//        ball.primitive(Graphics::TRIANGLES);
 
         state->colorGain = 300;
         state->frame = 0;
@@ -450,11 +450,15 @@ void pollOSC() {
     virtual void onCreate(const ViewpointWindow& win) {
         static cuttlebone::Stats fps("onSound()");
         fps(AlloSphereAudioSpatializer::audioIO().secondsPerBuffer());
+        graphics().blending(true);
     }
 
     virtual void onDraw(Graphics& g, const Viewpoint& v) {
+    g.clear(Graphics::COLOR_BUFFER_BIT | Graphics::DEPTH_BUFFER_BIT);
     g.clearColor(0, 0, 0, 1.0);
-    g.clear(Graphics::COLOR_BUFFER_BIT);
+    g.blendTrans();
+    g.depthTesting(true);
+
         // draw each agent
         for (int i=0; i<myModels[modelIndex].nTracks; ++i) {
             material();
@@ -466,8 +470,6 @@ void pollOSC() {
             myModels[modelIndex].myTracks[i].onDraw(g);
             g.popMatrix();
         }
-
-
     }
 
     virtual void onAnimate(double dt) {
@@ -485,6 +487,7 @@ void pollOSC() {
             state->g_Models[modelIndex].g_Tracks[i].playHeadPosition = myModels[modelIndex].myTracks[i].playHeadPosition;
             state->g_Models[modelIndex].g_Tracks[i].play = myModels[modelIndex].myTracks[i].play;
             state->g_Models[modelIndex].g_Tracks[i].sample = myModels[modelIndex].myTracks[i].s;
+            state->g_Models[modelIndex].g_Tracks[i].drawMode = myModels[modelIndex].myTracks[i].drawMode;
         }
 
 
@@ -570,6 +573,8 @@ void pollOSC() {
                 nav().pos() = nav().pos()*(1-time) + Vec3f(0,0,0)*time;
             }
         }
+
+        light.pos(nav().pos());
 
         rotator += rotAmount;
         if (rotator >= 2*M_PI)
@@ -663,13 +668,13 @@ void pollOSC() {
                 if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
                     plan.setEvent(myModels[modelIndex], "all", 2,
                                   "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2,",
-                                  "LOOP_TRACK_TRUE:"
+                                  "LOOP_TRACK_FALSE:"
                                   );
                 }
                 if (compTimer >= 5.0*sr && compTimer < 5.0*sr + sampleTolerance) {
                     plan.setEvent(myModels[modelIndex], "all", 2,
                                   "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, [inf]",
-                                  "LOOP_TRACK_TRUE:"
+                                  "LOOP_TRACK_FALSE:"
                                   );
                 }
 //                if (compTimer >= 2.1234*sr && compTimer < 2.1234*sr + sampleTolerance) {

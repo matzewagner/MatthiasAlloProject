@@ -12,7 +12,7 @@ struct g_Track {
     float sample;
     bool play;
     bool selected;
-    
+    bool drawMode;
     // values to be sent only once
     int nSamples;
     float sampleStep;

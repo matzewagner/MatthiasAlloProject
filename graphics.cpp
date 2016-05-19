@@ -18,6 +18,11 @@ struct Gra : OmniStereoGraphicsRenderer {
   Mesh freqEnv[N_TRACKS];
   Mesh playHead;
   Mesh box[N_TRACKS];
+  Mesh ball[N_TRACKS];
+  vector<float> out[N_TRACKS];
+
+  float offColor[N_TRACKS], colorScaler[N_TRACKS], sample[N_TRACKS];
+
 
   Vec3f playHeadPosition;
   float boxWidth[NUM_MODELS][N_TRACKS];
@@ -32,6 +37,9 @@ struct Gra : OmniStereoGraphicsRenderer {
     for (int i=0; i<N_TRACKS; ++i) {
     	freqEnv[i].primitive(Graphics::LINE_STRIP);
       box[i].primitive(Graphics::LINES);
+      ball[i].primitive(Graphics::TRIANGLES);
+      ball[i].generateNormals();
+      addSphere(ball[i], 1, 64, 64);
 
     }
     
@@ -78,61 +86,64 @@ struct Gra : OmniStereoGraphicsRenderer {
       pose = state->pose;
       g_ModelIndex = state->modelIndex;
 
-      cout << "Index: " << g_ModelIndex << endl;
+      // cout << "Index: " << g_ModelIndex << endl;
       
       for(int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
-          agentColor[i] = RGB(
-                              state->g_Models[g_ModelIndex].g_Tracks[i].offColor + state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler,
-                              state->g_Models[g_ModelIndex].g_Tracks[i].offColor + 0.1 + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5), 
-                              state->g_Models[g_ModelIndex].g_Tracks[i].offColor + (state->g_Models[g_ModelIndex].g_Tracks[i].sample*state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler*0.5)
+        offColor[i] = state->g_Models[g_ModelIndex].g_Tracks[i].offColor;
+        sample[i] = state->g_Models[g_ModelIndex].g_Tracks[i].sample;
+        colorScaler[i] = state->g_Models[g_ModelIndex].g_Tracks[i].colorScaler;
+        
+        agentColor[i] = RGB(
+                              offColor[i] + sample[i]*colorScaler[i],
+                              offColor[i] + 0.1 + (sample[i]*colorScaler[i]*0.5), 
+                              offColor[i] + (sample[i]*colorScaler[i]*0.5)
                               );
         // agentColor[i] = RGB(1, 1, 1);
       }
 
-      // box.reset();
-
-      
-    //   for (int i=0; i < NUM_MODELS; ++i) {
-    //     for (int j=0; j < N_TRACKS; ++j) {
-    //           // boxWidth[i][j] = state->g_Models[g_ModelIndex].g_Tracks[i].nSamples/44100.0;
-    //           // float boxHeight = 0.1;
-    //           // box.vertex(0, boxHeight, 0);
-    //           // box.vertex(boxWidth[i][j], boxHeight, 0);
-    //           // box.vertex(boxWidth[i][j], boxHeight, 0);
-    //           // box.vertex(boxWidth[i][j], -boxHeight, 0);
-    //           // box.vertex(boxWidth[i][j], -boxHeight, 0);
-    //           // box.vertex(0, -boxHeight, 0);
-    //           // box.vertex(0, -boxHeight, 0);
-    //           // box.vertex(0, boxHeight, 0);
-    //   }
-    // }
     state->print();
     timeFlag += dt;
   }
 
   virtual void onDraw(Graphics& g) {
 
-    cout << "check" << endl;
+    // cout << "check" << endl;
 
     for (int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
       
       //draw agents
       g.pushMatrix();
       g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].position);
-      g.color(agentColor[i]);
-      g.scale(1.0);
-      g.draw(freqEnv[i]);
-     //  if (state->g_Models[g_ModelIndex].g_Tracks[i].play) {
-	    //   g.pushMatrix();
-	    //   g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].playHeadPosition[0], 0);
-	    //   g.color(playHeadColor);
-	    //   g.draw(playHead);
-	    //   g.popMatrix();
-  	  // }
-      if (state->g_Models[g_ModelIndex].g_Tracks[i].selected) {
-        g.color(selectedColor);
-        g.draw(box[i]);
+
+      if (state->g_Models[g_ModelIndex].g_Tracks[i].drawMode%2 == 0)
+      {
+              g.pushMatrix();
+              g.color(agentColor[i]);
+              g.scale(abs(sample[i])*2.0 + 0.03);
+              g.draw(ball[i]);
+              g.popMatrix();
       }
+      else
+      {
+              g.pushMatrix();
+              g.color(agentColor[i]);
+              g.scale(1.0);
+              g.draw(freqEnv[i]);
+             //  if (state->g_Models[g_ModelIndex].g_Tracks[i].play) {
+              //   g.pushMatrix();
+              //   g.translate(state->g_Models[g_ModelIndex].g_Tracks[i].playHeadPosition[0], 0);
+              //   g.color(playHeadColor);
+              //   g.draw(playHead);
+              //   g.popMatrix();
+              // }
+              if (state->g_Models[g_ModelIndex].g_Tracks[i].selected) {
+                g.color(selectedColor);
+                g.draw(box[i]);
+                g.popMatrix();
+              }
+      }
+
+
       g.popMatrix(); 
 
     }

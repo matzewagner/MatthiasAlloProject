@@ -163,8 +163,9 @@ struct Track {
         }
         else if(drawSphere)
         {
-            offColor = 0.3;
-            trackColor = Color( offColor-0.1 + (1.0 * audioColor), offColor-0.1 + (0.5 * audioColor), offColor-0.1 + (0.5 * audioColor), abs(s));
+            offColor = 0.5;
+            colorScaler = 200;
+            trackColor = Color( offColor-0.1 + (1.0 * audioColor), offColor-0.1 + (0.5 * audioColor), offColor-0.1 + (0.5 * audioColor), (audioColor+1.0)*0.5);
         }
         else
         {
