@@ -111,8 +111,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 //            {"Bell_152Hz.aiff", 5.0, 152, 44100, 0.2, 0.2, 0.024, 0.5, -120, 0.55, 50, 15000, 100, false, "bellModel"}, // ok
 //            }
     {
-
+//        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 100, true, "Icarus");
         myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
+        myModels[1] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
+//        myModels[1] = new LorisModel(filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 10, false, "pianoA3Model");
 
         modelIndex = 0;
 
@@ -589,6 +591,12 @@ void pollOSC() {
         maker.set(*state);
     }
 
+    virtual void onExit() {
+        cout << "exiting" << endl;
+        delete myModels[0];
+        delete myModels[1];
+    }
+
     virtual void onSound(AudioIOData &io) {
 
         if (!playComp) {
@@ -669,13 +677,13 @@ void pollOSC() {
             if (playComp) {
 
                 if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
-                    plan.setEvent(*myModels[modelIndex], "all", 2,
+                    plan.setEvent(myModels[modelIndex], "all", 2,
                                   "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2,",
                                   "LOOP_TRACK_FALSE:"
                                   );
                 }
                 if (compTimer >= 5.0*sr && compTimer < 5.0*sr + sampleTolerance) {
-                    plan.setEvent(*myModels[modelIndex], "all", 2,
+                    plan.setEvent(myModels[modelIndex], "all", 2,
                                   "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, [inf]",
                                   "LOOP_TRACK_FALSE:"
                                   );
