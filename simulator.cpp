@@ -593,8 +593,9 @@ void pollOSC() {
 
     virtual void onExit() {
         cout << "exiting" << endl;
-        delete myModels[0];
-        delete myModels[1];
+       for (int i=0; i<3; ++i) {
+           delete myModels[i];
+       }
     }
 
     virtual void onSound(AudioIOData &io) {
