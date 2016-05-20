@@ -128,8 +128,9 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
                     foundrepeatModeDelimiter = true;
                     thisValue.erase(0, thisValue.find(repeatModeDelimiter) + repeatModeDelimiter.length());
                     std::string closingBracket = "]";
-//                    thisValue.erase(thisValue.find(closingBracket), closingBracket.length());
+                    thisValue.erase(thisValue.find(closingBracket), closingBracket.length());
                     newList.repeat = thisValue;
+                    cout << newList.repeat << endl;
                 }
                 // add event values
                 if (!foundTimeDelimiter)
@@ -148,16 +149,17 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
         p_Lists.push_back(newList);
     }
 
-//    for (int j=0; j<p_Lists.size(); ++j) {
-//        cout << "Key: " << p_Lists[j].key;
-//        cout << "\tValues: ";
-//        for (int i=0; i<p_Lists[j].eventValues.size(); ++i)
-//            cout << p_Lists[j].eventValues[i] << ", ";
-//        cout << "\tTimes: ";
-//        for (int i=0; i<p_Lists[j].eventTimes.size(); ++i)
-//            cout << p_Lists[j].eventTimes[i] << ", ";
-//        cout << endl;
-//    }
+    for (int j=0; j<p_Lists.size(); ++j) {
+        cout << "Key: " << p_Lists[j].key;
+        cout << "\tValues: ";
+        for (int i=0; i<p_Lists[j].eventValues.size(); ++i)
+            cout << p_Lists[j].eventValues[i] << ", ";
+        cout << "\tTimes: ";
+        for (int i=0; i<p_Lists[j].eventTimes.size(); ++i)
+            cout << p_Lists[j].eventTimes[i] << ", ";
+        cout << "\trepeat: " << p_Lists[j].repeat;
+        cout << endl;
+    }
 }
 
 void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {

@@ -111,10 +111,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 //            {"Bell_152Hz.aiff", 5.0, 152, 44100, 0.2, 0.2, 0.024, 0.5, -120, 0.55, 50, 15000, 100, false, "bellModel"}, // ok
 //            }
     {
-        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -240, 0.015, 20, 15000, 200, true, "Icarus");
-//        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
+//        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -240, 0.015, 20, 15000, 200, true, "Icarus");
+        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
         myModels[1] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
-        myModels[2] = new LorisModel(filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 10, false, "pianoA3Model");
+//        myModels[2] = new LorisModel(filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 10, false, "pianoA3Model");
 
         modelIndex = 0;
 
@@ -592,10 +592,10 @@ void pollOSC() {
     }
 
     virtual void onExit() {
-        cout << "exiting" << endl;
-       for (int i=0; i<3; ++i) {
+       for (int i=0; i<NUM_MODELS; ++i) {
            delete myModels[i];
        }
+       cout << "exiting" << endl;
     }
 
     virtual void onSound(AudioIOData &io) {
@@ -669,7 +669,7 @@ void pollOSC() {
                     myModels[modelIndex]->myTracks[i].compMode = false;
                 }
                 // add each agent's sound output to global output
-                s = myModels[modelIndex]->myTracks[i].onSound()*globalAmp*0.25;
+                s = myModels[modelIndex]->myTracks[i].onSound()*globalAmp*5.25;
                 tap[i].writeSample((s));
             }
 
@@ -687,14 +687,14 @@ void pollOSC() {
 
                 if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
                     plan.setEvent(myModels[modelIndex], "all", 2,
-                                  "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2,",
-                                  "LOOP_TRACK_FALSE:"
+                                  "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, ",
+                                  "LOOP_TRACK_TRUE:"
                                   );
                 }
                 if (compTimer >= 5.0*sr && compTimer < 5.0*sr + sampleTolerance) {
                     plan.setEvent(myModels[modelIndex], "all", 2,
-                                  "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, [inf]",
-                                  "LOOP_TRACK_FALSE:"
+                                  "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, [inf],",
+                                  "LOOP_TRACK_TRUE:"
                                   );
                 }
 //                if (compTimer >= 2.1234*sr && compTimer < 2.1234*sr + sampleTolerance) {
