@@ -38,7 +38,7 @@ struct Track {
     bool play, trigger, triggerFlag, singleTrigger, loopTrack, isReverse;
     bool compMode;
     double playPosition;
-    float playRate;
+    float playRate, currentPlayPos;
     bool drawFreqs, drawAmps, drawHeatMap, drawSphere;
     int drawMode;
     bool selected, drawSelected;
@@ -382,7 +382,8 @@ float Track::player() {
             AMFreq = AMEnv.getEnvValue();
             FMFreq = FMFreqsEnv.getEnvValue();
             FMAmount = FMAmountEnv.getEnvValue();
-            //gainScaler = AmpEnv.getEnvValue();
+            currentPlayPos = PlayPosEnv.getEnvValue();
+            gainScaler = AmpEnv.getEnvValue();
         }
         if (isReverse) {
             playReverse();
@@ -408,6 +409,9 @@ void Track::playForward() {
     ++sampleIndex;
     while (sampleIndex > m_freqs.size()-1) {
         if (loopTrack) {
+            if (compMode) {
+                startTime = (currentPlayPos*duration) + startTime;
+            }
             play = resetPlayhead(startTime, true);
         } else {
             play = resetPlayhead(playPosition, false);
@@ -422,6 +426,9 @@ void Track::playReverse() {
     while (sampleIndex < 0) {
         playPosition = endTime;
         if (loopTrack) {
+            if (compMode) {
+                startTime = (currentPlayPos*duration) + startTime;
+            }
             play = resetPlayhead(endTime, true);
         } else {
             play = resetPlayhead(playPosition, false);
