@@ -36,7 +36,7 @@ struct LorisModel {
             );
 
     ~LorisModel() {
-//        destroyPartialList(partials);
+        destroyPartialList(partials);
     }
 };
 
@@ -140,10 +140,13 @@ LorisModel::LorisModel(string fN,
         newTrack.modelPeakAmp = modelPeakAmp;
         newTrack.trackID = nTempTracks;
 
-        if (getLoudestTracks) {
+        if (getLoudestTracks)
+        {
             tempTracks.push_back(newTrack);
             ++nTempTracks;
-        } else if (!getLoudestTracks) {
+        }
+        else if (!getLoudestTracks)
+        {
             if (
                  newTrack.duration > minTrackLength
                  && (newTrack.freqAverage > lowFreqLimit)

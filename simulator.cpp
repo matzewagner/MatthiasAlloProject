@@ -686,13 +686,15 @@ void pollOSC() {
             if (playComp) {
 
                 if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "all", 2,
+                    plan.setEvent(myModels[modelIndex], "all", 3,
+                                  "DUR: 3.0,",
                                   "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, ",
                                   "LOOP_TRACK_TRUE:"
                                   );
                 }
                 if (compTimer >= 5.0*sr && compTimer < 5.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "all", 2,
+                    plan.setEvent(myModels[modelIndex], "all", 3,
+                                  "DUR: 5.0,",
                                   "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, [inf],",
                                   "LOOP_TRACK_TRUE:"
                                   );

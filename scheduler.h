@@ -130,7 +130,6 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
                     std::string closingBracket = "]";
                     thisValue.erase(thisValue.find(closingBracket), closingBracket.length());
                     newList.repeat = thisValue;
-                    cout << newList.repeat << endl;
                 }
                 // add event values
                 if (!foundTimeDelimiter)
@@ -164,8 +163,11 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
 
 void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
 
-    typedef enum {  PLAY_POS,
+    typedef enum {
+                    DUR,
+                    PLAY_POS,
                     PLAY_RATE,
+                    GRAIN_DUR,
                     LOOP_TRACK_TRUE,
                     LOOP_TRACK_FALSE,
                     AMP,
@@ -177,8 +179,10 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
                   } key_t;
 
     static std::map<std::string, key_t> mappedKeys;
+    mappedKeys["DUR"] = DUR;
     mappedKeys["PLAY_POS"] = PLAY_POS;
     mappedKeys["PLAY_RATE"] = PLAY_RATE;
+    mappedKeys["GRAIN_DUR"] = GRAIN_DUR;
     mappedKeys["LOOP_TRACK_TRUE"] = LOOP_TRACK_TRUE;
     mappedKeys["LOOP_TRACK_FALSE"] = LOOP_TRACK_FALSE;
     mappedKeys["AMP"] = AMP;
@@ -192,11 +196,16 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
         std::string key = p_Lists[i].key;
         p_Lists[i].sr = fs;
         switch (mappedKeys[key]) {
+        case DUR:
+            tr.envDur = p_Lists[i].eventValues[0];
         case PLAY_POS:
             tr.PlayPosEnv.newTrackEnv(p_Lists[i]);
             break;
         case PLAY_RATE:
             tr.PlayRateEnv.newTrackEnv(p_Lists[i]);
+            break;
+        case GRAIN_DUR:
+            tr.GrainDurEnv.newTrackEnv(p_Lists[i]);
             break;
         case LOOP_TRACK_TRUE:
             tr.loopTrack = true;
