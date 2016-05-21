@@ -205,7 +205,7 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
             tr.AmpEnv.newTrackEnv(p_Lists[i]);
             break;
         case TRIG_RATE:
-            tr.AmpEnv.newTrackEnv(p_Lists[i]);
+            tr.TrigRateEnv.newTrackEnv(p_Lists[i]);
             break;
         case PLAY_POS:
             tr.PlayPosEnv.newTrackEnv(p_Lists[i]);

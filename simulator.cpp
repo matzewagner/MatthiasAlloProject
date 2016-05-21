@@ -263,6 +263,7 @@ void pollOSC() {
                 myModels[modelIndex]->myTracks[i].isReverse = false;
             }
 
+            // pass globalPlayrate to each track
             myModels[modelIndex]->myTracks[i].playRate = globalPlayRate;
             myModels[modelIndex]->myTracks[i].playPosition = playPosition + double(trigger/double(sr));
 
@@ -335,12 +336,14 @@ void pollOSC() {
         }
 
 
-        if (triggerAll.get() == 1.0) {
+        if (triggerAll.get() == 1.0)
+        {
             isTriggerAll = true;
         }
         else
+        {
             isTriggerAll = false;
-
+        }
         if (loop.get() == 1.0)
             looper = true;
         else if (loop.get() == 0.0)
@@ -634,7 +637,7 @@ void pollOSC() {
                 if (abs(trigger) < 5) {
                     for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                         // set triggerFlag to prevent continuous triggering;
-                        // this is set to false emmidaiately after triggering from within the track;
+                        // this is set to false immediately after triggering from within the track;
                         myModels[modelIndex]->myTracks[i].triggerFlag = true;
                     }
                 }
@@ -648,22 +651,25 @@ void pollOSC() {
             if (isTriggerAll) {
                 for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                     // set triggerFlag to prevent continuous triggering;
-                    // this is set to false emmidaiately after triggering from within the track;
+                    // this is set to false immediately after triggering from within the track;
                     myModels[modelIndex]->myTracks[i].triggerFlag = true;
                 }
                 trigger = floatTrigger = 0;
+                isTriggerAll = false;
             }
 
             // keeping track of global playhead position in regards to all tracks of the entire sound
             int globalPlayHeadPos = trigger+(playPosition*sr);
 
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+
                 // get start and end time for each track
                 int trackStartTime = myModels[modelIndex]->myTracks[i].startTime*sr;
                 int trackEndTime = myModels[modelIndex]->myTracks[i].endTime*sr;
 
                 // if playhead is in range for the track, trigger it
                 if ((globalPlayHeadPos >= trackStartTime) && (globalPlayHeadPos <= trackEndTime)) {
+                    myModels[modelIndex]->myTracks[i].playRate = globalPlayRate;
                     myModels[modelIndex]->myTracks[i].playPosition = double(globalPlayHeadPos/double(sr));
                     myModels[modelIndex]->myTracks[i].trigger = true;
                 }
@@ -692,7 +698,7 @@ void pollOSC() {
             int sampleTolerance = 1;
 
             if (playComp) {
-                  compositionList::playCompositionList(compTimer, sampleTolerance, *myModels, modelIndex, sr, plan);
+                  compositionList::playCompositionList(compTimer, sampleTolerance, *myModels, modelIndex, sr, plan, isTriggerAll);
             }
         }
 

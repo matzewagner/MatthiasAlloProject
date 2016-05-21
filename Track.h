@@ -82,6 +82,8 @@ struct Track {
 
     float player();
 
+    float envelopeCountDown();
+
     void playForward();
 
     void playReverse();
@@ -161,6 +163,7 @@ Track::Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>
     isReverse = false;
     playRate = 1.0;
     grainTriggerCounter = -1;
+    triggerRate = 1.0;
     grainDurCounter = duration*sr;
     drawFreqs = false;
     drawAmps = false;
@@ -349,33 +352,11 @@ bool Track::resetPlayhead(float pos, bool continuePlay) {
 
 float Track::onSound() {
 
-    if (compMode) {
-
-        --grainTriggerCounter;
-        if (grainTriggerCounter == 0) {
-//            cout << "check" << endl;
-            singleTrigger = true;
-            grainTriggerCounter = triggerRate*sr;
-            grainDurCounter = grainDur*sr;
-        }
-
-        --grainDurCounter;
-//        cout << grainDurCounter << endl;
-        if (grainDurCounter == 0) {
-            trigger = false;
-            play = resetPlayhead(startTime, false);
-        }
-
-        if (envDur > 0)
-        {
-            --envDur;
-            return player();
-        }
-        else
-        {
-            play = false;
-            return 0;
-        }
+    if (compMode)
+    {
+        // counts down various envelope related counters,
+        // and returns player() or 0 accordingly
+        return envelopeCountDown();
     }
     else
     {
@@ -385,20 +366,66 @@ float Track::onSound() {
 
 //----------------------------------------------------------------
 
+float Track::envelopeCountDown() {
+
+    // countdown until the next grain triggers
+    if (grainTriggerCounter > 0)
+    {
+        --grainTriggerCounter;
+    }
+    else
+    {
+        singleTrigger = true;
+        grainTriggerCounter = (1.0/float(triggerRate))*sr;
+        grainDurCounter = grainDur*sr;
+    }
+
+    // countdown until the end of this grain
+    if (grainDurCounter > 0)
+    {
+        --grainDurCounter;
+    }
+    else
+    {
+        trigger = false;
+        play = resetPlayhead(startTime, false);
+    }
+
+    if (envDur > 0)
+    {
+        // countdown until the end of this envelope
+        --envDur;
+        return player();
+    }
+    else
+    {
+        play = false;
+        return 0;
+    }
+}
+
+
+//----------------------------------------------------------------
+
 float Track::player() {
 
-    if (loopTrack) {
+    if (loopTrack)
+    {
         if (singleTrigger && !play) {
             play = resetPlayhead(startTime, true);
         }
-    } else if (!loopTrack) {
+    }
+    else if (!loopTrack)
+    {
         if (singleTrigger) {
             play = resetPlayhead(startTime, true);
         }
     }
+
     if (trigger) {
         play = resetPlayhead(playPosition, true);
     }
+
 
     if (play)
     {
@@ -459,9 +486,13 @@ void Track::playForward() {
         if (compMode) {
             playPosition = startTime;
         }
-        if (loopTrack) {
+
+        if (loopTrack)
+        {
             play = resetPlayhead(playPosition, true);
-        } else {
+        }
+        else
+        {
             play = resetPlayhead(playPosition, false);
         }
     }
@@ -471,9 +502,13 @@ void Track::playForward() {
         if (compMode) {
             playPosition = endTime;
         }
-        if (loopTrack) {
+
+        if (loopTrack)
+        {
             play = resetPlayhead(playPosition, true);
-        } else {
+        }
+        else
+        {
             play = resetPlayhead(playPosition, false);
         }
     }
@@ -484,7 +519,7 @@ void Track::playForward() {
 void Track::playReverse() {
     if (compMode)
     {
-        floatSampleIndex -= playRate;
+        floatSampleIndex += playRate;
         sampleIndex = int(floatSampleIndex);
     }
     else

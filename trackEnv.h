@@ -62,7 +62,7 @@ void trackEnv::newTrackEnv(ParamList &source) {
 }
 
 float trackEnv::getEnvValue() {
-    // if envelope has only one value
+    // if envelope is empty
     if (envelope.empty())
     {
         return 0;
