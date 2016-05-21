@@ -38,7 +38,7 @@ struct Track {
     bool play, trigger, triggerFlag, singleTrigger, loopTrack, isReverse;
     bool compMode;
     double playPosition;
-    float playRate, currentPlayPos;
+    float playRate, floatSampleIndex, currentPlayPos;
     bool drawFreqs, drawAmps, drawHeatMap, drawSphere;
     int drawMode;
     bool selected, drawSelected;
@@ -319,16 +319,24 @@ float Track::next(vector<double>& myVector, int sIndex) {
 //----------------------------------------------------------------
 
 bool Track::resetPlayhead(float pos, bool continuePlay) {
-    sampleIndex = pos*sr - startTime*sr;
-    if (sampleIndex > m_freqs.size()-1) {
-     sampleIndex = m_freqs.size()-1;
-     return false;
-    } else if (sampleIndex < 0) {
-        sampleIndex = 0;
+
+    sampleIndex = floatSampleIndex = pos*sr - startTime*sr;
+
+    if (sampleIndex > m_freqs.size()-1)
+    {
+        sampleIndex = floatSampleIndex = m_freqs.size()-1;
         return false;
-    } else {
+    }
+    else if (sampleIndex < 0)
+    {
+        sampleIndex = floatSampleIndex = endTime*sr - startTime*sr;
+        return false;
+    }
+    else
+    {
         osc.phase(next(m_phases, sampleIndex));
         aMod.phase(1.0/(M_PI*0.5));
+
         return continuePlay;
     }
 }
@@ -384,6 +392,7 @@ float Track::player() {
             FMAmount = FMAmountEnv.getEnvValue();
             currentPlayPos = PlayPosEnv.getEnvValue();
             gainScaler = AmpEnv.getEnvValue();
+            playRate = PlayRateEnv.getEnvValue();
         }
         if (isReverse) {
             playReverse();
@@ -406,13 +415,34 @@ float Track::player() {
 //----------------------------------------------------------------
 
 void Track::playForward() {
-    ++sampleIndex;
+    if (compMode)
+    {
+        floatSampleIndex += playRate;
+        sampleIndex = int(floatSampleIndex);
+//        cout << "Float: " << floatSampleIndex << "\tInt: " << sampleIndex<< endl;
+    }
+    else
+    {
+        ++sampleIndex;
+    }
     while (sampleIndex > m_freqs.size()-1) {
+        playPosition = startTime;
+        if (compMode) {
+            playPosition = startTime;
+        }
         if (loopTrack) {
-            if (compMode) {
-                startTime = (currentPlayPos*duration) + startTime;
-            }
-            play = resetPlayhead(startTime, true);
+            play = resetPlayhead(playPosition, true);
+        } else {
+            play = resetPlayhead(playPosition, false);
+        }
+    }
+    while (sampleIndex < 0) {
+        playPosition = endTime;
+        if (compMode) {
+            playPosition = endTime;
+        }
+        if (loopTrack) {
+            play = resetPlayhead(playPosition, true);
         } else {
             play = resetPlayhead(playPosition, false);
         }
@@ -422,14 +452,33 @@ void Track::playForward() {
 //----------------------------------------------------------------
 
 void Track::playReverse() {
-    --sampleIndex;
+    if (compMode)
+    {
+        floatSampleIndex -= playRate;
+        sampleIndex = int(floatSampleIndex);
+    }
+    else
+    {
+        --sampleIndex;
+    }
     while (sampleIndex < 0) {
         playPosition = endTime;
+        if (compMode) {
+            playPosition = endTime;
+        }
         if (loopTrack) {
-            if (compMode) {
-                startTime = (currentPlayPos*duration) + startTime;
-            }
-            play = resetPlayhead(endTime, true);
+            play = resetPlayhead(playPosition, true);
+        } else {
+            play = resetPlayhead(playPosition, false);
+        }
+    }
+    while (sampleIndex > m_freqs.size()-1) {
+        playPosition = startTime;
+        if (compMode) {
+            playPosition = startTime;
+        }
+        if (loopTrack) {
+            play = resetPlayhead(playPosition, true);
         } else {
             play = resetPlayhead(playPosition, false);
         }

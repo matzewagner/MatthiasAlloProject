@@ -155,8 +155,9 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 				// set positions for individual tracks
                 float wallScaler = 1.0;
                 x = i % int(sqrt(myModels[j]->myTracks.size()));
-                if (x == 0)
+                if (x == 0) {
                     ++y;
+                }
                 myModels[j]->myTracks[i].squarePosition = Vec3f(
                                                 x*wallScaler - ((sqrt(myModels[j]->myTracks.size())/2.0)*wallScaler),
                                                 y*wallScaler - ((sqrt(myModels[j]->myTracks.size())/2.0)*wallScaler),
@@ -183,6 +184,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                 state->g_Models[j].g_Tracks[i].nSamples = myModels[j]->myTracks[i].nSamples;
                 state->g_Models[j].g_Tracks[i].sampleStep = myModels[j]->myTracks[i].sampleStep;
                 state->g_Models[j].g_Tracks[i].colorScaler = myModels[j]->myTracks[i].colorScaler;
+                state->g_Models[j].g_Tracks[i].drawMode = myModels[j]->myTracks[i].drawMode = drawMode;
             }
             state->g_Models[j].numTracks = myModels[j]->nTracks;
             sr = myModels[modelIndex]->sr;
@@ -686,20 +688,22 @@ void pollOSC() {
             if (playComp) {
 
                 if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "all", 5,
+                    plan.setEvent(myModels[modelIndex], "all", 6,
                                   "DUR: 3.0,",
-                                  "PLAY_POS: 0, 0.5, | 2.0, [inf],",
+                                  "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
+                                  "PLAY_POS: 1.0,",
+                                  "PLAY_RATE: 1.0, 3.0, | 3.0, [inf],",
                                   "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, ",
-                                  "AMP: 0, 1, 1, 0, | 0.1, 2.8, 0.1, ",
                                   "LOOP_TRACK_TRUE:"
                                   );
                 }
                 if (compTimer >= 5.0*sr && compTimer < 5.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "all", 5,
+                    plan.setEvent(myModels[modelIndex], "all", 6,
                                   "DUR: 15.0,",
-                                  "PLAY_POS: 0.9, 0, | 2.0, [inf],",
-                                  "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, [inf],",
                                   "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
+                                  "PLAY_POS: 1.0,",
+                                  "PLAY_RATE: 1.0, -1.0, 2.0, | 7.0, 7.0, [inf],",
+                                  "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, [inf],",
                                   "LOOP_TRACK_TRUE:"
                                   );
                 }
