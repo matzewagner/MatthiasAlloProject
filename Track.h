@@ -78,7 +78,7 @@ struct Track {
 
     float onSound();
 
-    void player();
+    float player();
 
     void playForward();
 
@@ -336,6 +336,29 @@ bool Track::resetPlayhead(float pos, bool continuePlay) {
 //----------------------------------------------------------------
 
 float Track::onSound() {
+
+    if (compMode) {
+        if (envDur > 0)
+        {
+            -- envDur;
+            return player();
+        }
+        else
+        {
+            play = false;
+            return 0;
+        }
+    }
+    else
+    {
+        return player();
+    }
+}
+
+//----------------------------------------------------------------
+
+float Track::player() {
+
     if (loopTrack) {
         if (singleTrigger && !play) {
             play = resetPlayhead(startTime, true);
@@ -350,8 +373,22 @@ float Track::onSound() {
     }
 
     if (play) {
-
-        player();
+        trigger = singleTrigger = triggerFlag = false;
+        currentFreq = next(m_freqs, sampleIndex);
+        // osc.phase(next(m_phases, sampleIndex));
+        osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
+        currentAmp = next(m_amps, sampleIndex);
+        if (compMode) {
+            AMFreq = AMEnv.getEnvValue();
+            FMFreq = FMFreqsEnv.getEnvValue();
+            FMAmount = FMAmountEnv.getEnvValue();
+            //gainScaler = AmpEnv.getEnvValue();
+        }
+        if (isReverse) {
+            playReverse();
+        } else if (!isReverse) {
+            playForward();
+        }
 
         s = (osc()*(aMod(AMFreq)*0.5)+0.5)*currentAmp*gainScaler*mute;
         if (s >= 0.99) s = 0.99;
@@ -362,28 +399,6 @@ float Track::onSound() {
     } else {
         outPut.push_back(abs(s));
         return 0;
-    }
-}
-
-//----------------------------------------------------------------
-
-void Track::player() {
-
-    trigger = singleTrigger = triggerFlag = false;
-    currentFreq = next(m_freqs, sampleIndex);
-    // osc.phase(next(m_phases, sampleIndex));
-    osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
-    currentAmp = next(m_amps, sampleIndex);
-    if (compMode) {
-        AMFreq = AMEnv.getEnvValue();
-        FMFreq = FMFreqsEnv.getEnvValue();
-        FMAmount = FMAmountEnv.getEnvValue();
-        //gainScaler = AmpEnv.getEnvValue();
-    }
-    if (isReverse) {
-        playReverse();
-    } else if (!isReverse) {
-        playForward();
     }
 }
 

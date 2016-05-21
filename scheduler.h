@@ -197,7 +197,7 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
         p_Lists[i].sr = fs;
         switch (mappedKeys[key]) {
         case DUR:
-            tr.envDur = p_Lists[i].eventValues[0];
+            tr.envDur = p_Lists[i].eventValues[0]*p_Lists[i].sr;
         case PLAY_POS:
             tr.PlayPosEnv.newTrackEnv(p_Lists[i]);
             break;
