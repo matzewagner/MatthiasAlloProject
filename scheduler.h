@@ -165,12 +165,13 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
 
     typedef enum {
                     DUR,
+                    AMP,
+                    TRIG_RATE,
                     PLAY_POS,
                     PLAY_RATE,
                     GRAIN_DUR,
                     LOOP_TRACK_TRUE,
                     LOOP_TRACK_FALSE,
-                    AMP,
                     AM,
                     FM_FREQ,
                     FM_AMOUNT,
@@ -180,12 +181,13 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
 
     static std::map<std::string, key_t> mappedKeys;
     mappedKeys["DUR"] = DUR;
+    mappedKeys["AMP"] = AMP;
+    mappedKeys["TRIG_RATE"] = TRIG_RATE;
     mappedKeys["PLAY_POS"] = PLAY_POS;
     mappedKeys["PLAY_RATE"] = PLAY_RATE;
     mappedKeys["GRAIN_DUR"] = GRAIN_DUR;
     mappedKeys["LOOP_TRACK_TRUE"] = LOOP_TRACK_TRUE;
     mappedKeys["LOOP_TRACK_FALSE"] = LOOP_TRACK_FALSE;
-    mappedKeys["AMP"] = AMP;
     mappedKeys["AM"] = AM;
     mappedKeys["FM_FREQ"] = FM_FREQ;
     mappedKeys["FM_AMOUNT"] = FM_AMOUNT;
@@ -198,6 +200,13 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
         switch (mappedKeys[key]) {
         case DUR:
             tr.envDur = p_Lists[i].eventValues[0]*p_Lists[i].sr;
+            break;
+        case AMP:
+            tr.AmpEnv.newTrackEnv(p_Lists[i]);
+            break;
+        case TRIG_RATE:
+            tr.AmpEnv.newTrackEnv(p_Lists[i]);
+            break;
         case PLAY_POS:
             tr.PlayPosEnv.newTrackEnv(p_Lists[i]);
             break;
@@ -212,9 +221,6 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
             break;
         case LOOP_TRACK_FALSE:
             tr.loopTrack = false;
-            break;
-        case AMP:
-            tr.AmpEnv.newTrackEnv(p_Lists[i]);
             break;
         case AM:
             tr.AMEnv.newTrackEnv(p_Lists[i]);

@@ -25,6 +25,7 @@
 #include "LorisModel.h"
 #include "params.h"
 #include "scheduler.h"
+#include "compositionList.h"
 
 using namespace al;
 using namespace std;
@@ -602,9 +603,6 @@ void pollOSC() {
 
     virtual void onSound(AudioIOData &io) {
 
-        if (!playComp) {
-            pollOSC();
-        }
         // set trigger initially to modelEndTime to prevent triggering
         if (init_trigger_flag) {
             floatTrigger = myModels[modelIndex]->modelEndTime*sr;
@@ -612,58 +610,66 @@ void pollOSC() {
             init_trigger_flag = false;
         }
 
-        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-            // calculate each agent's audio position
-            tap[i].pos(myModels[modelIndex]->myTracks[i].rotatedPosition[0],
-                        myModels[modelIndex]->myTracks[i].rotatedPosition[1],
-                        myModels[modelIndex]->myTracks[i].rotatedPosition[2]);
+        if (!playComp) {
+            pollOSC();
         }
 
+        for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+            // calculate each agent's audio position
+            tap[i].pos( myModels[modelIndex]->myTracks[i].rotatedPosition[0],
+                        myModels[modelIndex]->myTracks[i].rotatedPosition[1],
+                        myModels[modelIndex]->myTracks[i].rotatedPosition[2]
+                        );
+        }
+        // output value
         float s = 0;
 
         while (io()) {
+
             // if looping, trigger is the modulo of the looplength
             if (looper) {
                 trigger = int(floatTrigger)%int(loopLength * sr);
 
+                // check each track for trigger within a time threshold (hard-coded)
                 if (abs(trigger) < 5) {
                     for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                        // set triggerFlag to prevent continuous triggering;
+                        // this is set to false emmidaiately after triggering from within the track;
                         myModels[modelIndex]->myTracks[i].triggerFlag = true;
                     }
                 }
+                // if playhead moves forward, reset floatTrigger to positive offset (hard-coded)
                 if (abs(trigger) < 5 && globalPlayRate > 0) floatTrigger = 6.0;
+                // if playhead moves backwards, reset floatTrigger to negative offset (hard-coded)
                 else if (abs(trigger) < 5 && globalPlayRate < 0) floatTrigger = -6.0;
 
             }
             // if triggering manually, set trigger to 0
             if (isTriggerAll) {
                 for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                    // set triggerFlag to prevent continuous triggering;
+                    // this is set to false emmidaiately after triggering from within the track;
                     myModels[modelIndex]->myTracks[i].triggerFlag = true;
                 }
-                trigger = 0;
-                floatTrigger = 0;
+                trigger = floatTrigger = 0;
             }
 
-            int triggerPosition = trigger+(playPosition*sr);
+            // keeping track of global playhead position in regards to all tracks of the entire sound
+            int globalPlayHeadPos = trigger+(playPosition*sr);
 
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-                // trigger each track when trigger reaches its start time
+                // get start and end time for each track
                 int trackStartTime = myModels[modelIndex]->myTracks[i].startTime*sr;
                 int trackEndTime = myModels[modelIndex]->myTracks[i].endTime*sr;
 
-                if (!myModels[modelIndex]->myTracks[i].isReverse) {
-                    if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
-                        myModels[modelIndex]->myTracks[i].playPosition = double(triggerPosition/double(sr));
-                        myModels[modelIndex]->myTracks[i].trigger = true;
-                    }
-                } else if (myModels[modelIndex]->myTracks[i].isReverse) {
-                    if ((triggerPosition >= trackStartTime) && (triggerPosition <= trackEndTime)) {
-                        myModels[modelIndex]->myTracks[i].playPosition = double(triggerPosition/double(sr));
-                        myModels[modelIndex]->myTracks[i].trigger = true;
-                    }
+                // if playhead is in range for the track, trigger it
+                if ((globalPlayHeadPos >= trackStartTime) && (globalPlayHeadPos <= trackEndTime)) {
+                    myModels[modelIndex]->myTracks[i].playPosition = double(globalPlayHeadPos/double(sr));
+                    myModels[modelIndex]->myTracks[i].trigger = true;
                 }
 
-                if (playComp) {
+                if (playComp)
+                {
                     myModels[modelIndex]->myTracks[i].compMode = true;
                 }
                 else if (!playComp)
@@ -686,57 +692,7 @@ void pollOSC() {
             int sampleTolerance = 1;
 
             if (playComp) {
-
-                if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "all", 6,
-                                  "DUR: 3.0,",
-                                  "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
-                                  "PLAY_POS: 1.0,",
-                                  "PLAY_RATE: 1.0, 3.0, | 3.0, [inf],",
-                                  "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, ",
-                                  "LOOP_TRACK_TRUE:"
-                                  );
-                }
-                if (compTimer >= 5.0*sr && compTimer < 5.0*sr + sampleTolerance) {
-                    plan.setEvent(myModels[modelIndex], "all", 6,
-                                  "DUR: 15.0,",
-                                  "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
-                                  "PLAY_POS: 1.0,",
-                                  "PLAY_RATE: 1.0, -1.0, 2.0, | 7.0, 7.0, [inf],",
-                                  "AM: 20, 4000, 35, 98, | 0.1, 0.02, 0.2, [inf],",
-                                  "LOOP_TRACK_TRUE:"
-                                  );
-                }
-//                if (compTimer >= 2.1234*sr && compTimer < 2.1234*sr + sampleTolerance) {
-//                    plan.setEvent(myModels[modelIndex], "0, 1", 2,
-//                                  "FM_FREQ: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
-//                                  "FM_AMOUNT: 10,"
-//                                  );
-//                }
-//                if (compTimer >= 3.0*sr && compTimer < 3.0*sr + sampleTolerance) {
-//                    plan.setEvent(myModels[modelIndex], "3, 45", 1,
-//                                  "AM: 5, -65, 80, | 0.01, 1.0,"
-//                                  );
-//                }
-//                if (compTimer >= 3.5*sr && compTimer < 3.5*sr + sampleTolerance) {
-//                    plan.setEvent(myModels[modelIndex], "all", 1,
-//                                  "AM: 20, 400, 35, 98, | 0.1, 0.5, 1.0,",
-//                                  "FM_AMOUNT: 100, 101, | 0.9, 0.5,",
-//                                  "FM_FREQ: 40, 101, | 0.9, 0.5,"
-//                                  );
-//                }
-//                if (compTimer >= 4.5*sr && compTimer < 4.5*sr + sampleTolerance) {
-//                    plan.setEvent(myModels[modelIndex], "0, 1", 1,
-//                                  "AM: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
-//                                  "AMP: .5, 0, | 0,"
-//                                  );
-//                }
-//                if (compTimer >= 5.5*sr && compTimer < 5.5*sr + sampleTolerance) {
-//                    plan.setEvent(myModels[modelIndex], "0, 3, 45", 1,
-//                                  "LOOP_TRACK",
-//                                  "AM: 5, -65, 800, | 1.0, 20.0,"
-//                                  );
-//                }
+                  compositionList::playCompositionList(compTimer, sampleTolerance, *myModels, modelIndex, sr, plan);
             }
         }
 

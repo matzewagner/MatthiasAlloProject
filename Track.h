@@ -14,7 +14,7 @@ struct Track {
     Quatf myRotator;
     gam::Sine<> osc, aMod, fMod;
     float envDur;
-    trackEnv PlayPosEnv, PlayRateEnv, GrainDurEnv, AmpEnv, AMEnv, FMFreqsEnv, FMAmountEnv, PosEnv;
+    trackEnv AmpEnv, TrigRateEnv, PlayPosEnv, PlayRateEnv, GrainDurEnv, AMEnv, FMFreqsEnv, FMAmountEnv, PosEnv;
     float playPosDefault=0, playRateDefault=1.0, grainDurDefault=0, ampDefault=0, AMDefault=0, FMFreqDefault=0, FMAmountDefault=0;
 
     Mesh freqs, amps, heatMap;
@@ -38,6 +38,8 @@ struct Track {
     bool play, trigger, triggerFlag, singleTrigger, loopTrack, isReverse;
     bool compMode;
     double playPosition;
+    float grainDur, triggerRate;
+    int grainTriggerCounter, grainDurCounter;
     float playRate, floatSampleIndex, currentPlayPos;
     bool drawFreqs, drawAmps, drawHeatMap, drawSphere;
     int drawMode;
@@ -158,6 +160,8 @@ Track::Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>
     triggerFlag = false;
     isReverse = false;
     playRate = 1.0;
+    grainTriggerCounter = -1;
+    grainDurCounter = duration*sr;
     drawFreqs = false;
     drawAmps = false;
     drawHeatMap = false;
@@ -329,7 +333,7 @@ bool Track::resetPlayhead(float pos, bool continuePlay) {
     }
     else if (sampleIndex < 0)
     {
-        sampleIndex = floatSampleIndex = endTime*sr - startTime*sr;
+        sampleIndex = floatSampleIndex = 0;
         return false;
     }
     else
@@ -346,9 +350,25 @@ bool Track::resetPlayhead(float pos, bool continuePlay) {
 float Track::onSound() {
 
     if (compMode) {
+
+        --grainTriggerCounter;
+        if (grainTriggerCounter == 0) {
+//            cout << "check" << endl;
+            singleTrigger = true;
+            grainTriggerCounter = triggerRate*sr;
+            grainDurCounter = grainDur*sr;
+        }
+
+        --grainDurCounter;
+//        cout << grainDurCounter << endl;
+        if (grainDurCounter == 0) {
+            trigger = false;
+            play = resetPlayhead(startTime, false);
+        }
+
         if (envDur > 0)
         {
-            -- envDur;
+            --envDur;
             return player();
         }
         else
@@ -380,20 +400,24 @@ float Track::player() {
         play = resetPlayhead(playPosition, true);
     }
 
-    if (play) {
+    if (play)
+    {
         trigger = singleTrigger = triggerFlag = false;
         currentFreq = next(m_freqs, sampleIndex);
         // osc.phase(next(m_phases, sampleIndex));
         osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
         currentAmp = next(m_amps, sampleIndex);
         if (compMode) {
+            gainScaler = AmpEnv.getEnvValue();
             AMFreq = AMEnv.getEnvValue();
             FMFreq = FMFreqsEnv.getEnvValue();
             FMAmount = FMAmountEnv.getEnvValue();
             currentPlayPos = PlayPosEnv.getEnvValue();
-            gainScaler = AmpEnv.getEnvValue();
             playRate = PlayRateEnv.getEnvValue();
+            grainDur = GrainDurEnv.getEnvValue();
+            triggerRate = TrigRateEnv.getEnvValue();
         }
+
         if (isReverse) {
             playReverse();
         } else if (!isReverse) {
@@ -405,9 +429,13 @@ float Track::player() {
         else if (s <= -0.99) s = -0.99;
 
         outPut.push_back(abs(s));
+
         return s;
-    } else {
+    }
+    else
+    {
         outPut.push_back(abs(s));
+
         return 0;
     }
 }
@@ -419,13 +447,14 @@ void Track::playForward() {
     {
         floatSampleIndex += playRate;
         sampleIndex = int(floatSampleIndex);
-//        cout << "Float: " << floatSampleIndex << "\tInt: " << sampleIndex<< endl;
     }
     else
     {
         ++sampleIndex;
     }
-    while (sampleIndex > m_freqs.size()-1) {
+
+    if (sampleIndex > m_freqs.size()-1)
+    {
         playPosition = startTime;
         if (compMode) {
             playPosition = startTime;
@@ -436,7 +465,8 @@ void Track::playForward() {
             play = resetPlayhead(playPosition, false);
         }
     }
-    while (sampleIndex < 0) {
+    else if (sampleIndex <= 0)
+    {
         playPosition = endTime;
         if (compMode) {
             playPosition = endTime;
@@ -461,10 +491,11 @@ void Track::playReverse() {
     {
         --sampleIndex;
     }
-    while (sampleIndex < 0) {
-        playPosition = endTime;
+    if (sampleIndex > m_freqs.size()-1)
+    {
+        playPosition = startTime;
         if (compMode) {
-            playPosition = endTime;
+            playPosition = startTime;
         }
         if (loopTrack) {
             play = resetPlayhead(playPosition, true);
@@ -472,10 +503,11 @@ void Track::playReverse() {
             play = resetPlayhead(playPosition, false);
         }
     }
-    while (sampleIndex > m_freqs.size()-1) {
-        playPosition = startTime;
+    else if (sampleIndex <= 0)
+    {
+        playPosition = endTime;
         if (compMode) {
-            playPosition = startTime;
+            playPosition = endTime;
         }
         if (loopTrack) {
             play = resetPlayhead(playPosition, true);
