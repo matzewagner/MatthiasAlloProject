@@ -26,7 +26,11 @@ struct Scheduler {
     void setParameters(Track &tr,  vector<ParamList> &p_Lists, int fs);
 };
 
+//----------------------------------------------------------------
+
 void Scheduler::setSR(int fs) { sr = fs; }
+
+//----------------------------------------------------------------
 
 void Scheduler::setEvent(LorisModel *model, const std::string &trackIDs, int nArgs, ...) {
 
@@ -70,23 +74,56 @@ void Scheduler::setEvent(LorisModel *model, const std::string &trackIDs, int nAr
     paramLists.clear();
 }
 
+//----------------------------------------------------------------
+
 void Scheduler::getTrackIDs(const std::string &trackIDs, vector<int> &trax) {
 
-    if (trackIDs == "all")
+    std::string s = trackIDs;
+    const std::string allKey = "all";
+    const std::string rangeKey = "range:";
+    const std::string rangeDelim = ":";
+
+    if (s.find(allKey) != std::string::npos)
     {
         allTracks = true;
         return;
     }
+    else if (s.find(rangeKey) != std::string::npos)
+    {
+        // get rid of range key
+        s.erase(0, rangeKey.length());
+
+        // extract range
+        std::string sV1 = s.substr(0, s.find(rangeDelim));
+        int v1 = std::stoi(sV1);
+        if (v1 < 0) {
+            v1 = 0;
+        }
+        s.erase(0, s.find(rangeDelim) + rangeDelim.length());
+        std::string sV2 = s.substr(0, std::string::npos);
+        int v2 = std::stoi(sV2);
+        if (v2 < 0) {
+            v2 = 0;
+        }
+
+        // add indexes to trax
+        for (int i=std::min(v1,v2); i < (std::max(v1,v2) + 1); ++i) {
+            trax.push_back(i);
+        }
+    }
     else
     {
-        std::string s = trackIDs;
         std::string valueDelimiter = ",";
         size_t pos = 0;
 
         while ( (pos = s.find(valueDelimiter)) != std::string::npos) {
 
                 std::string thisValue = s.substr(0, pos);
-                trax.push_back(std::stoi(thisValue));
+                int trackIndex = std::stoi(thisValue);
+                if (trackIndex < 0) {
+                    trackIndex = 0;
+                }
+                trax.push_back(trackIndex);
 
                 s.erase(0, pos + valueDelimiter.length());
         }
@@ -95,16 +132,18 @@ void Scheduler::getTrackIDs(const std::string &trackIDs, vector<int> &trax) {
     }
 }
 
+//----------------------------------------------------------------
+
 void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_Lists) {
 
     // for every parameter
     for (int i=0; i<params.size(); ++i) {
         ParamList newList;
         std::string s = params[i];
-        std::string keyDelimiter = ":";
-        std::string valueDelimiter = ",";
-        std::string timeDelimiter = "|";
-        std::string repeatModeDelimiter = "[";
+        const std::string keyDelimiter = ":";
+        const std::string valueDelimiter = ",";
+        const std::string timeDelimiter = "|";
+        const std::string repeatModeDelimiter = "[";
         size_t pos = 0;
 
         // get key
@@ -160,6 +199,8 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
         cout << endl;
     }
 }
+
+//----------------------------------------------------------------
 
 void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
 

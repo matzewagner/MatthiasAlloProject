@@ -26,7 +26,7 @@ void compositionList::playCompositionList(
 {
  
  				if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
-                    plan.setEvent(&myModels[modelIndex], "all", 9,
+                    plan.setEvent(&myModels[modelIndex], "range: 20 : 10", 9,
                                   "DUR: 5.0,",
                                   "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
                                   "TRIG_RATE: 10, 20, 10, | 0.8, 0.2, [inf],",
