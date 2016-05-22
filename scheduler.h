@@ -132,7 +132,7 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
                     newList.repeat = thisValue;
                 }
                 // add event values
-                if (!foundTimeDelimiter)
+                 else if (!foundTimeDelimiter)
                 {
                     newList.eventValues.push_back(std::stof(thisValue));
                 }

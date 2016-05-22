@@ -22,27 +22,28 @@ void compositionList::playCompositionList(
                                             int sr,
                                             Scheduler plan,
                                             bool &isTriggerAll
-                                            ) {
+                                            )
+{
  
  				if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
                     plan.setEvent(&myModels[modelIndex], "all", 8,
-                                  "DUR: 15.0,",
+                                  "DUR: 5.0,",
                                   "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
-                                  "TRIG_RATE: 1, 50, 10, | 12.8, 0.2, [inf],",
+                                  "TRIG_RATE: 10, 20, 10, | 0.8, 0.2, [inf],",
                                   "GRAIN_DUR: 0.01, 0.2, 0.01, | 2.8, 0.2, [inf],",
-                                  "PLAY_POS: 0.1, 0.9, | 3.0, [inf]",
+                                  "PLAY_POS: 0.1, 0.9, | 3.0, [inf],",
                                   "PLAY_RATE: 1.0, 3.0, | 3.0, [inf],",
                                   "AM: 20, 400, 35, 98, | 0.1, 0.02, 0.2, ",
                                   "LOOP_TRACK_TRUE:"
                                   );
                 }
-                if (compTimer >= 15.0*sr && compTimer < 15.0*sr + sampleTolerance) {
+                if (compTimer >= 8.0*sr && compTimer < 8.0*sr + sampleTolerance) {
                     plan.setEvent(&myModels[modelIndex], "all", 8,
                                   "DUR: 5.0,",
                                   "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
-                                  "TRIG_RATE: 5, 10, 100, | 1, 4.8, [inf],",
+                                  "TRIG_RATE: 10, 10, 100, | 1, 4.8, [inf],",
                                   "GRAIN_DUR: 0.2, 0.002, 0.1, | 7, 7, [inf],",
-                                  "PLAY_POS: 0.7, 0.1, | 5.0, [inf]",
+                                  "PLAY_POS: 0.7, 0.1, | 5.0, [inf],",
                                   "PLAY_RATE: 1.0, 1.0, 2.0, | 7.0, 7.0, [inf],",
                                   "AM: 20, 400, 35, 98, | 0.1, 0.02, 0.2, [inf],",
                                   "LOOP_TRACK_TRUE:"

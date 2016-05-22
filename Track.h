@@ -263,15 +263,20 @@ void Track::onDraw(Graphics& g) {
         drawAmps = true;
         drawSphere = drawFreqs = drawHeatMap= false;
         break;
+
+    default:
+        break;
     }
 
-    for (int i=0; i<outPut.size(); ++i)
+    for (int i=0; i<outPut.size(); ++i) {
         out += outPut[i];
+    }
     out /= outPut.size()+1;
     outPut.erase(outPut.begin(),outPut.end());
 
     g.pushMatrix();
     g.color(trackColor);
+
     if (selected && drawSelected) {
         if (!drawSphere) {
         g.color(selectedColor);
@@ -287,23 +292,29 @@ void Track::onDraw(Graphics& g) {
         }
     }
 
-    if (drawAmps) {
+    if (drawAmps)
+    {
         g.color(trackColor);
         g.draw(amps);
     }
-    else if (drawHeatMap) {
+    else if (drawHeatMap)
+    {
         g.draw(heatMap);
     }
-    else if (drawSphere) {
+    else if (drawSphere)
+    {
         g.pushMatrix();
         g.scale(out*2.0 + 0.03);
         g.draw(sphere);
         g.popMatrix();
     }
-    else if (drawFreqs) {
+    else if (drawFreqs)
+    {
         g.color(trackColor);
         g.draw(freqs);
     }
+
+
     if (play && !drawSphere) {
         playHeadPosition[0] = sampleIndex*sampleStep;
         if (drawFreqs || drawHeatMap) {
