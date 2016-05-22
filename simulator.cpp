@@ -112,8 +112,8 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 //            {"Bell_152Hz.aiff", 5.0, 152, 44100, 0.2, 0.2, 0.024, 0.5, -120, 0.55, 50, 15000, 100, false, "bellModel"}, // ok
 //            }
     {
-        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.05, 20, 15000, 100, true, "Icarus");
-//        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
+//        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.05, 20, 15000, 100, true, "Icarus");
+        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
         myModels[1] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
 //        myModels[2] = new LorisModel(filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 10, false, "pianoA3Model");
 
@@ -151,6 +151,8 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                 tap[i].useAttenuation(true);
 
                 // set positions for individual tracks
+
+                // square position
                 float wallScaler = 1.0;
                 x = i % int(sqrt(myModels[j]->myTracks.size()));
                 if (x == 0) {
@@ -161,21 +163,26 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                                                 y*wallScaler - ((sqrt(myModels[j]->myTracks.size())/2.0)*wallScaler),
                                                 0.0
                                                 );
+                // circle position
                 int circleIndex = (i + int(myModels[j]->nTracks*0.75)) % myModels[j]->nTracks;
                 mappedCircle = circleIndex * (2.0*M_PI/float(myModels[j]->nTracks));
                 myModels[j]->myTracks[i].circlePosition = Vec3f(sin(mappedCircle)*rad, 0, cos(mappedCircle)*rad);
 
+                // sphere position
                 float angle = rnd::uniform(M_PI*2.0);
                 sphericalToX = rad * sin(angle) * cos(mappedCircle);
                 sphericalToY = rad * sin(angle) * sin(mappedCircle);
                 sphericalToZ = rad * cos(angle);
                 myModels[j]->myTracks[i].spherePosition = Vec3f(sphericalToX, sphericalToY, sphericalToZ);
 
+                // line position
                 myModels[j]->myTracks[int(myModels[j]->nTracks - (i+1))].linePosition = Vec3f(0, 0, ((i*lineLength)-(lineLength*myModels[j]->nTracks*0.75))/float(myModels[j]->nTracks));
 
+                // highest freqs closest position
                 float freqScaler = myModels[modelIndex]->myTracks[0].freqFactor*3;
                 myModels[j]->myTracks[i].hiFreqsClosestPos = Vec3f(0, 0, (15000*freqScaler) - myModels[j]->myTracks[i].freqAverage*freqScaler);
 
+                // loudest tracks furthest position
                 myModels[j]->myTracks[i].loudestAwayPos = Vec3f(0, 0, -myModels[j]->myTracks[i].level*0.001);
 
                 // set state values for individual tracks

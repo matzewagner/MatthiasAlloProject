@@ -172,6 +172,7 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
                     GRAIN_DUR,
                     LOOP_TRACK_TRUE,
                     LOOP_TRACK_FALSE,
+                    FREQ_SHIFT,
                     AM,
                     FM_FREQ,
                     FM_AMOUNT,
@@ -188,6 +189,7 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
     mappedKeys["GRAIN_DUR"] = GRAIN_DUR;
     mappedKeys["LOOP_TRACK_TRUE"] = LOOP_TRACK_TRUE;
     mappedKeys["LOOP_TRACK_FALSE"] = LOOP_TRACK_FALSE;
+    mappedKeys["FREQ_SHIFT"] = FREQ_SHIFT;
     mappedKeys["AM"] = AM;
     mappedKeys["FM_FREQ"] = FM_FREQ;
     mappedKeys["FM_AMOUNT"] = FM_AMOUNT;
@@ -221,6 +223,9 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
             break;
         case LOOP_TRACK_FALSE:
             tr.loopTrack = false;
+            break;
+        case FREQ_SHIFT:
+            tr.FreqShiftEnv.setTrackEnv(p_Lists[i]);
             break;
         case AM:
             tr.AMEnv.setTrackEnv(p_Lists[i]);

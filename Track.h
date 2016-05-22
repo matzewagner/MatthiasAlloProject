@@ -15,8 +15,8 @@ struct Track {
     Quatf myRotator;
     gam::Sine<> osc, aMod, fMod;
     float envDur;
-    trackEnv AmpEnv, TrigRateEnv, PlayPosEnv, PlayRateEnv, GrainDurEnv, AMEnv, FMFreqsEnv, FMAmountEnv, PosEnv;
-    float ampDefault=0, trigRateDefault=1.0, playPosDefault=0, playRateDefault=1.0, grainDurDefault=0, AMDefault=0, FMFreqDefault=0, FMAmountDefault=0;
+    trackEnv AmpEnv, TrigRateEnv, PlayPosEnv, PlayRateEnv, GrainDurEnv, FreqShiftEnv, AMEnv, FMFreqsEnv, FMAmountEnv, PosEnv;
+    float ampDefault=0, trigRateDefault=1.0, playPosDefault=0, playRateDefault=1.0, grainDurDefault=0, freqShiftDefault=0, AMDefault=0, FMFreqDefault=0, FMAmountDefault=0;
 
     Mesh freqs, amps, heatMap;
     Mesh sphere;
@@ -26,7 +26,7 @@ struct Track {
     float offColor;
     float audioColor, colorScaler;
     float gainScaler, mute;
-    float AMFreq, FMFreq, FMAmount;
+    float freqShift, AMFreq, FMFreq, FMAmount;
     float oscAmount, noiseAmount;
     float rotAngle, rX, rY, rZ;
     float velocityScaler;
@@ -469,10 +469,11 @@ float Track::player() {
         trigger = singleTrigger = triggerFlag = false;
         currentFreq = next(m_freqs, sampleIndex);
         // osc.phase(next(m_phases, sampleIndex));
-        osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100));
+        osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100) + freqShift);
         currentAmp = next(m_amps, sampleIndex);
         if (compMode) {
             gainScaler = AmpEnv.getEnvValue();
+            freqShift = FreqShiftEnv.getEnvValue();
             AMFreq = AMEnv.getEnvValue();
             FMFreq = FMFreqsEnv.getEnvValue();
             FMAmount = FMAmountEnv.getEnvValue();
@@ -566,8 +567,10 @@ void Track::checkForLimits() {
 //----------------------------------------------------------------
 
 void Track::resetEnvelopes() {
+
     // clear all envelopes
     AmpEnv.clearTrackEnv();
+    FreqShiftEnv.clearTrackEnv();
     AMEnv.clearTrackEnv();
     FMFreqsEnv.clearTrackEnv();
     FMAmountEnv.clearTrackEnv();
@@ -575,8 +578,10 @@ void Track::resetEnvelopes() {
     PlayRateEnv.clearTrackEnv();
     GrainDurEnv.clearTrackEnv();
     TrigRateEnv.clearTrackEnv();
+
     // set variables to default values
     gainScaler = ampDefault;
+    freqShift = freqShiftDefault;
     AMFreq = AMDefault;
     FMFreq = FMFreqDefault;
     FMAmount = FMAmountDefault;
