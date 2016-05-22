@@ -6,12 +6,16 @@ struct trackEnv {
     unsigned int envIndex;
     std::string repeatMode = "once";
 
-    void newTrackEnv(ParamList &source);
+    void setTrackEnv(ParamList &source);
+
+    void clearTrackEnv();
 
     float getEnvValue();
 };
 
-void trackEnv::newTrackEnv(ParamList &source) {
+//----------------------------------------------------------------
+
+void trackEnv::setTrackEnv(ParamList &source) {
 
     envIndex = 0;
     // return if there are no values to compute
@@ -61,6 +65,8 @@ void trackEnv::newTrackEnv(ParamList &source) {
     repeatMode = source.repeat;
 }
 
+//----------------------------------------------------------------
+
 float trackEnv::getEnvValue() {
     // if envelope is empty
     if (envelope.empty())
@@ -88,4 +94,14 @@ float trackEnv::getEnvValue() {
 
         return envelope[envIndex];
     }
+}
+
+//----------------------------------------------------------------
+
+void trackEnv::clearTrackEnv() {
+
+    envIndex = 0;
+    repeatMode = "once";
+    envelope.clear();
+
 }

@@ -6,6 +6,7 @@
 using namespace al;
 
 struct Track {
+
     int trackID;
     int nTracks;
 
@@ -15,7 +16,7 @@ struct Track {
     gam::Sine<> osc, aMod, fMod;
     float envDur;
     trackEnv AmpEnv, TrigRateEnv, PlayPosEnv, PlayRateEnv, GrainDurEnv, AMEnv, FMFreqsEnv, FMAmountEnv, PosEnv;
-    float playPosDefault=0, playRateDefault=1.0, grainDurDefault=0, ampDefault=0, AMDefault=0, FMFreqDefault=0, FMAmountDefault=0;
+    float ampDefault=0, trigRateDefault=1.0, playPosDefault=0, playRateDefault=1.0, grainDurDefault=0, AMDefault=0, FMFreqDefault=0, FMAmountDefault=0;
 
     Mesh freqs, amps, heatMap;
     Mesh sphere;
@@ -65,7 +66,7 @@ struct Track {
     double rms, maxAmp, level, modelPeakAmp;
     float freqAverage;
 
-    float out, prevOut;
+    float out;
     vector<float> outPut;
 
     Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>& amps_, float sTime, int t_ID);
@@ -74,11 +75,11 @@ struct Track {
 
     void onDraw(Graphics& g);
 
+    float onSound();
+
     float next(vector<double>& myVector, int sIndex);
 
     bool resetPlayhead(float pos, bool continuePlay);
-
-    float onSound();
 
     float player();
 
@@ -87,6 +88,10 @@ struct Track {
     void playForward();
 
     void playReverse();
+
+    void checkForLimits();
+
+    void resetEnvelopes();
 
 };
 
@@ -317,6 +322,23 @@ void Track::onDraw(Graphics& g) {
     g.popMatrix();
 }
 
+
+//----------------------------------------------------------------
+
+float Track::onSound() {
+
+    if (compMode)
+    {
+        // counts down various envelope related counters,
+        // and returns player() or 0 accordingly
+        return envelopeCountDown();
+    }
+    else
+    {
+        return player();
+    }
+}
+
 //----------------------------------------------------------------
 
 float Track::next(vector<double>& myVector, int sIndex) {
@@ -350,22 +372,6 @@ bool Track::resetPlayhead(float pos, bool continuePlay) {
 
 //----------------------------------------------------------------
 
-float Track::onSound() {
-
-    if (compMode)
-    {
-        // counts down various envelope related counters,
-        // and returns player() or 0 accordingly
-        return envelopeCountDown();
-    }
-    else
-    {
-        return player();
-    }
-}
-
-//----------------------------------------------------------------
-
 float Track::envelopeCountDown() {
 
     // countdown until the next grain triggers
@@ -391,6 +397,8 @@ float Track::envelopeCountDown() {
         play = resetPlayhead(startTime, false);
     }
 
+    // this marks the total duration of the envelopes,
+    // regardless if an individual envelope might exceed it
     if (envDur > 0)
     {
         // countdown until the end of this envelope
@@ -400,6 +408,7 @@ float Track::envelopeCountDown() {
     else
     {
         play = false;
+        resetEnvelopes();
         return 0;
     }
 }
@@ -412,13 +421,30 @@ float Track::player() {
     if (loopTrack)
     {
         if (singleTrigger && !play) {
-            play = resetPlayhead(startTime, true);
+
+            if (compMode)
+            {
+                playPosition = (currentPlayPos*duration) + startTime;
+                play = resetPlayhead(playPosition, true);
+            }
+            else
+            {
+                play = resetPlayhead(startTime, true);
+            }
         }
     }
     else if (!loopTrack)
     {
         if (singleTrigger) {
-            play = resetPlayhead(startTime, true);
+            if (compMode)
+            {
+                playPosition = (currentPlayPos*duration) + startTime;
+                play = resetPlayhead(playPosition, true);
+            }
+            else
+            {
+                play = resetPlayhead(startTime, true);
+            }
         }
     }
 
@@ -480,38 +506,7 @@ void Track::playForward() {
         ++sampleIndex;
     }
 
-    if (sampleIndex > m_freqs.size()-1)
-    {
-        playPosition = startTime;
-        if (compMode) {
-            playPosition = startTime;
-        }
-
-        if (loopTrack)
-        {
-            play = resetPlayhead(playPosition, true);
-        }
-        else
-        {
-            play = resetPlayhead(playPosition, false);
-        }
-    }
-    else if (sampleIndex <= 0)
-    {
-        playPosition = endTime;
-        if (compMode) {
-            playPosition = endTime;
-        }
-
-        if (loopTrack)
-        {
-            play = resetPlayhead(playPosition, true);
-        }
-        else
-        {
-            play = resetPlayhead(playPosition, false);
-        }
-    }
+    checkForLimits();
 }
 
 //----------------------------------------------------------------
@@ -526,34 +521,66 @@ void Track::playReverse() {
     {
         --sampleIndex;
     }
-    if (sampleIndex > m_freqs.size()-1)
+
+    checkForLimits();
+}
+
+//----------------------------------------------------------------
+
+void Track::checkForLimits() {
+    // check if sampleIndex has reached either end of the track
+    // and set playhead accordingly
+    if (sampleIndex <= 0 || sampleIndex > m_freqs.size()-1)
     {
-        playPosition = startTime;
-        if (compMode) {
-            playPosition = startTime;
-        }
-        if (loopTrack) {
-            play = resetPlayhead(playPosition, true);
-        } else {
-            play = resetPlayhead(playPosition, false);
-        }
-    }
-    else if (sampleIndex <= 0)
-    {
-        playPosition = endTime;
-        if (compMode) {
+        if (sampleIndex <= 0)
+        {
             playPosition = endTime;
         }
-        if (loopTrack) {
+        else if (sampleIndex > m_freqs.size()-1)
+        {
+            playPosition = startTime;
+        }
+
+        if (loopTrack)
+        {
             play = resetPlayhead(playPosition, true);
-        } else {
+        }
+        else
+        {
             play = resetPlayhead(playPosition, false);
         }
     }
 }
 
 //----------------------------------------------------------------
+
+void Track::resetEnvelopes() {
+    // clear all envelopes
+    AmpEnv.clearTrackEnv();
+    AMEnv.clearTrackEnv();
+    FMFreqsEnv.clearTrackEnv();
+    FMAmountEnv.clearTrackEnv();
+    PlayPosEnv.clearTrackEnv();
+    PlayRateEnv.clearTrackEnv();
+    GrainDurEnv.clearTrackEnv();
+    TrigRateEnv.clearTrackEnv();
+    // set variables to default values
+    gainScaler = ampDefault;
+    AMFreq = AMDefault;
+    FMFreq = FMFreqDefault;
+    FMAmount = FMAmountDefault;
+    currentPlayPos = playPosDefault;
+    playRate = playRateDefault;
+    grainDur = grainDurDefault;
+    triggerRate = trigRateDefault;
+}
+
+
 //----------------------------------------------------------------
+//----------------------------------------------------------------
+
+// struct for sorting the tracks of a LorisModel according to
+// a given parameter
 
 struct featureCompare {
   string property;

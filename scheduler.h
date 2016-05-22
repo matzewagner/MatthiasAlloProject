@@ -202,19 +202,19 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
             tr.envDur = p_Lists[i].eventValues[0]*p_Lists[i].sr;
             break;
         case AMP:
-            tr.AmpEnv.newTrackEnv(p_Lists[i]);
+            tr.AmpEnv.setTrackEnv(p_Lists[i]);
             break;
         case TRIG_RATE:
-            tr.TrigRateEnv.newTrackEnv(p_Lists[i]);
+            tr.TrigRateEnv.setTrackEnv(p_Lists[i]);
             break;
         case PLAY_POS:
-            tr.PlayPosEnv.newTrackEnv(p_Lists[i]);
+            tr.PlayPosEnv.setTrackEnv(p_Lists[i]);
             break;
         case PLAY_RATE:
-            tr.PlayRateEnv.newTrackEnv(p_Lists[i]);
+            tr.PlayRateEnv.setTrackEnv(p_Lists[i]);
             break;
         case GRAIN_DUR:
-            tr.GrainDurEnv.newTrackEnv(p_Lists[i]);
+            tr.GrainDurEnv.setTrackEnv(p_Lists[i]);
             break;
         case LOOP_TRACK_TRUE:
             tr.loopTrack = true;
@@ -223,16 +223,16 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
             tr.loopTrack = false;
             break;
         case AM:
-            tr.AMEnv.newTrackEnv(p_Lists[i]);
+            tr.AMEnv.setTrackEnv(p_Lists[i]);
             break;
         case FM_FREQ:
-            tr.FMFreqsEnv.newTrackEnv(p_Lists[i]);
+            tr.FMFreqsEnv.setTrackEnv(p_Lists[i]);
             break;
         case FM_AMOUNT:
-            tr.FMAmountEnv.newTrackEnv(p_Lists[i]);
+            tr.FMAmountEnv.setTrackEnv(p_Lists[i]);
             break;
         case POS:
-            tr.PosEnv.newTrackEnv(p_Lists[i]);
+            tr.PosEnv.setTrackEnv(p_Lists[i]);
             break;
 
         default:
