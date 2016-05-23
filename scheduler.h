@@ -12,19 +12,27 @@
 struct Scheduler {
     int sr;
     bool allTracks;
+    static bool printEnvelopes;
+    std::string triggerMode;
 
     // set the sampling rate
     void setSR(int fs);
 
     // schedule an event
-    void setEvent(LorisModel *model, const std::string &trackIDs, int nArgs, ...);
+    void setEvent(LorisModel *model, const std::string &trackIDs, const std::string &trigMode, int nArgs, ...);
 
     void getTrackIDs(const std::string &trackIDs, vector<int> &trax);
 
+    std::string getTriggerMode(const std::string &trigMode);
+
     void getParameters(vector<std::string> &params, vector<ParamList> &p_Lists);
 
-    void setParameters(Track &tr,  vector<ParamList> &p_Lists, int fs);
+    void setParameters(Track &tr,  vector<ParamList> &p_Lists, int &fs, std::string &trigMode);
 };
+
+//----------------------------------------------------------------
+
+bool Scheduler::printEnvelopes = false;
 
 //----------------------------------------------------------------
 
@@ -32,16 +40,20 @@ void Scheduler::setSR(int fs) { sr = fs; }
 
 //----------------------------------------------------------------
 
-void Scheduler::setEvent(LorisModel *model, const std::string &trackIDs, int nArgs, ...) {
+void Scheduler::setEvent(LorisModel *model,
+                         const std::string &trackIDs,
+                         const std::string &trigMode,
+                         int nArgs, ...) {
 
     vector<int> tracks;
     vector<std::string> parameters;
     vector<ParamList> paramLists;
 
     Scheduler::getTrackIDs(trackIDs, tracks);
+    triggerMode = Scheduler::getTriggerMode(trigMode);
 
     va_list args;
-    va_start(args, trackIDs);
+    va_start(args, nArgs);
     std::string myS;
     for (int i=0; i<nArgs; ++i) {
         myS = va_arg(args, const char*);
@@ -54,7 +66,7 @@ void Scheduler::setEvent(LorisModel *model, const std::string &trackIDs, int nAr
     if (allTracks)
     {
         for (int i=0; i<model->nTracks; ++i) {
-            Scheduler::setParameters(model->myTracks[i], paramLists, sr);
+            Scheduler::setParameters(model->myTracks[i], paramLists, sr, triggerMode);
             model->myTracks[i].singleTrigger = true;
         }
         allTracks = false;
@@ -63,7 +75,7 @@ void Scheduler::setEvent(LorisModel *model, const std::string &trackIDs, int nAr
     {
         for (int i=0; i<tracks.size(); ++i) {
             if (tracks[i] >= 0 && tracks[i] < model->nTracks) {
-                Scheduler::setParameters(model->myTracks[tracks[i]], paramLists, sr);
+                Scheduler::setParameters(model->myTracks[tracks[i]], paramLists, sr, triggerMode);
                 model->myTracks[tracks[i]].singleTrigger = true;
             }
         }
@@ -79,8 +91,8 @@ void Scheduler::setEvent(LorisModel *model, const std::string &trackIDs, int nAr
 void Scheduler::getTrackIDs(const std::string &trackIDs, vector<int> &trax) {
 
     std::string s = trackIDs;
-    const std::string allKey = "all";
-    const std::string rangeKey = "range:";
+    const std::string allKey = "ALL";
+    const std::string rangeKey = "RANGE:";
     const std::string rangeDelim = ":";
 
     if (s.find(allKey) != std::string::npos)
@@ -129,6 +141,24 @@ void Scheduler::getTrackIDs(const std::string &trackIDs, vector<int> &trax) {
         }
 
         allTracks = false;
+    }
+}
+
+//----------------------------------------------------------------
+
+std::string Scheduler::getTriggerMode(const std::string &trigMode) {
+
+    std::string s = trigMode;
+    const std::string inOrderKey = "IN_ORDER";
+    const std::string unisonKey = "UNISON";
+
+    if (s.find(inOrderKey) != std::string::npos)
+    {
+        return inOrderKey;
+    }
+    else
+    {
+        return unisonKey;
     }
 }
 
@@ -187,23 +217,38 @@ void Scheduler::getParameters(vector<std::string> &params, vector<ParamList> &p_
         p_Lists.push_back(newList);
     }
 
-    for (int j=0; j<p_Lists.size(); ++j) {
-        cout << "Key: " << p_Lists[j].key;
-        cout << "\tValues: ";
-        for (int i=0; i<p_Lists[j].eventValues.size(); ++i)
-            cout << p_Lists[j].eventValues[i] << ", ";
-        cout << "\tTimes: ";
-        for (int i=0; i<p_Lists[j].eventTimes.size(); ++i)
-            cout << p_Lists[j].eventTimes[i] << ", ";
-        cout << "\trepeat: " << p_Lists[j].repeat;
-        cout << endl;
+    if (printEnvelopes) {
+        cout << "TRIGGER_MODE: " << triggerMode << endl;
+        for (int j=0; j<p_Lists.size(); ++j) {
+            cout << "Key: " << p_Lists[j].key;
+            cout << "\tValues: ";
+            for (int i=0; i<p_Lists[j].eventValues.size(); ++i)
+                cout << p_Lists[j].eventValues[i] << ", ";
+            cout << "\tTimes: ";
+            for (int i=0; i<p_Lists[j].eventTimes.size(); ++i)
+                cout << p_Lists[j].eventTimes[i] << ", ";
+            cout << "\trepeat: " << p_Lists[j].repeat;
+            cout << endl;
+        }
     }
 }
 
 //----------------------------------------------------------------
 
-void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
+void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int &fs, std::string &trigMode) {
 
+    int totalDuration = 0;
+    // do we want the tracks triggered in order or simultaneously?
+    if (trigMode == "IN_ORDER")
+    {
+        tr.triggerMode = 1;
+    }
+    else
+    {
+        tr.triggerMode = 0;
+    }
+
+    // enum for envelopes
     typedef enum {
                     DUR,
                     AMP,
@@ -242,7 +287,7 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
         p_Lists[i].sr = fs;
         switch (mappedKeys[key]) {
         case DUR:
-            tr.envDur = p_Lists[i].eventValues[0]*p_Lists[i].sr;
+            totalDuration = p_Lists[i].eventValues[0]*p_Lists[i].sr;
             break;
         case AMP:
             tr.AmpEnv.setTrackEnv(p_Lists[i]);
@@ -285,6 +330,11 @@ void Scheduler::setParameters(Track &tr, vector<ParamList> &p_Lists, int fs) {
             break;
         }
     }
+
+    // set the total envelope duration,
+    // which starts the envDur counter last
+    tr.envDur = totalDuration;
+
 }
 
 

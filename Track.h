@@ -10,43 +10,50 @@ struct Track {
     int trackID;
     int nTracks;
 
+    int triggerMode = 1;
+
     State* state;
 
     Quatf myRotator;
     gam::Sine<> osc, aMod, fMod;
-    float envDur;
-    trackEnv AmpEnv, TrigRateEnv, PlayPosEnv, PlayRateEnv, GrainDurEnv, FreqShiftEnv, AMEnv, FMFreqsEnv, FMAmountEnv, PosEnv;
-    float ampDefault=0, trigRateDefault=1.0, playPosDefault=0, playRateDefault=1.0, grainDurDefault=0, freqShiftDefault=0, AMDefault=0, FMFreqDefault=0, FMAmountDefault=0;
+    int envDur = 0;
+    trackEnv AmpEnv, TrigRateEnv, PlayPosEnv, PlayRateEnv;
+    trackEnv GrainDurEnv, FreqShiftEnv, AMEnv, FMFreqsEnv, FMAmountEnv, PosEnv;
+    float ampDefault=1.0, trigRateDefault=10.0, playPosDefault=0, playRateDefault=1.0;
+    float grainDurDefault=0, freqShiftDefault=0, AMDefault=0, FMFreqDefault=0, FMAmountDefault=0;
 
     Mesh freqs, amps, heatMap;
     Mesh sphere;
     Mesh playHead;
     Mesh box;
+
     Color trackColor, heatColor, playHeadColor, selectedColor;
-    float offColor;
-    float audioColor, colorScaler;
+    float offColor, audioColor, colorScaler;
+
     float gainScaler, mute;
     float freqShift, AMFreq, FMFreq, FMAmount;
-    float oscAmount, noiseAmount;
+
     float rotAngle, rX, rY, rZ;
     float velocityScaler;
     Vec3f velocity;
-    Vec3f position, spectralPosition, nullPosition, squarePosition, circlePosition, spherePosition, linePosition, hiFreqsClosestPos, loudestAwayPos, randPosition;
+    Vec3f position, spectralPosition, nullPosition, squarePosition, circlePosition;
+    Vec3f spherePosition, linePosition, hiFreqsClosestPos, loudestAwayPos, randPosition;
     Vec3f rotatedPosition;
     Vec3f playHeadPosition;
     float positionScaler;
+
     bool animate;
-    bool play, trigger, triggerFlag, singleTrigger, loopTrack, isReverse;
+    bool play, trigger, singleTrigger, loopTrack, isReverse;
+    bool selected, drawSelected;
+    bool drawFreqs, drawAmps, drawHeatMap, drawSphere;
     bool compMode;
+
     double playPosition;
     float grainDur, triggerRate;
     int grainTriggerCounter, grainDurCounter;
     float playRate, floatSampleIndex, currentPlayPos;
-    bool drawFreqs, drawAmps, drawHeatMap, drawSphere;
     int drawMode;
-    bool selected, drawSelected;
 
-    short usable;
     float startTime;
     float endTime;
     int sr;
@@ -59,15 +66,15 @@ struct Track {
     vector<double> m_amps;
     vector<double> m_phases;
     vector<double> m_bandwidths;
-    double currentAmp, currentFreq;
-    double currentPhase;
+    double currentAmp, currentFreq, currentPhase;
     int sampleIndex;
 
     double rms, maxAmp, level, modelPeakAmp;
     float freqAverage;
-
-    float out;
+    float out, previousOut;
+    int blendCounter;
     vector<float> outPut;
+
 
     Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>& amps_, float sTime, int t_ID);
 
@@ -90,6 +97,8 @@ struct Track {
     void playReverse();
 
     void checkForLimits();
+
+    void getEnvelopeValues();
 
     void resetEnvelopes();
 
@@ -120,15 +129,18 @@ Track::Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>
     sphere.primitive(Graphics::TRIANGLES);
     playHead.primitive(Graphics::LINE_STRIP);
     box.primitive(Graphics::LINES);
-    sphere.generateNormals();
+
     addSphere(sphere, 1, 64, 64);
     sphere.generateNormals();
+
     spectralPosition = Vec3f(startTime, freqToY - (15000*freqFactor*0.5), 0);
     nullPosition = Vec3f(0, 0, 0);
     randPosition = Vec3f(rnd::uniformS(L), rnd::uniformS(L), rnd::uniformS(L));
     positionScaler = 1.0;
     velocity = Vec3f(rnd::uniformS(10.0), rnd::uniformS(10.1), rnd::uniformS(10.2))*velocityScaler;
     velocityScaler = 0.66;
+
+    // add vertices for frequency and amplitude envelope meshes
     for (int i=0; i<nSamples; ++i) {
 
         freqs.vertex(
@@ -157,25 +169,19 @@ Track::Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>
     colorScaler = 300;
     playHeadColor = RGB(0, 0.75, 1.0);
     selectedColor = RGB(0.5, 0.0, 0.5);
-    oscAmount = 1.0;
-    noiseAmount = 0.0;
     gainScaler = 1.0;
     mute = 1.0;
     position = spectralPosition;
     animate = false;
     play = false;
-    triggerFlag = false;
     isReverse = false;
     playRate = 1.0;
     grainTriggerCounter = -1;
     triggerRate = 1.0;
     grainDurCounter = duration*sr;
-    drawFreqs = false;
-    drawAmps = false;
-    drawHeatMap = false;
+    drawFreqs = drawAmps = drawHeatMap = false;
     drawSphere = true;
-    selected = false;
-    drawSelected = false;
+    selected = drawSelected = false;
     compMode = false;
 
     osc.freq(m_freqs[0]);
@@ -190,24 +196,42 @@ Track::Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>
 //----------------------------------------------------------------
 
 void Track::onAnimate(double dt) {
+
     offColor = 0.25;
-    if (play) {
+
+    if (play)
+    {
         audioColor = pow(abs(s),1)*colorScaler;
-    } else {
+    }
+    else
+    {
+        out = 0;
         audioColor = 0;
     }
+
+    // set colors for each drawMode
     if (drawAmps)
     {
-        trackColor = Color( offColor + (1.0 * audioColor), offColor+0.1 + (0.5 * audioColor), offColor + (0.5 * audioColor), 1.0);
+        trackColor = Color( offColor + (1.0 * audioColor),
+                            offColor+0.1 + (0.5 * audioColor),
+                            offColor + (0.5 * audioColor), 1.0
+                            );
     }
     else if(drawSphere)
     {
         offColor = 0.5;
-        trackColor = Color( offColor-0.1 + (1.0 * audioColor), offColor-0.1 + (0.5 * audioColor), offColor-0.1 + (0.5 * audioColor), (audioColor+1.0)*0.5);
+        audioColor *= 0.5;
+        trackColor = Color( offColor + (1.0 * audioColor),
+                            offColor + (0.5 * audioColor),
+                            offColor + (0.5 * audioColor),
+                            (audioColor*0.01) + offColor
+                            );
     }
     else
     {
-        trackColor = Color( offColor + (1.0 * audioColor), offColor + (0.5 * audioColor), offColor + (0.5 * audioColor), 1.0);
+        trackColor = Color( offColor + (1.0 * audioColor),
+                            offColor + (0.5 * audioColor),
+                            offColor + (0.5 * audioColor), 1.0);
     }
     selectedColor = RGB(0.5, 0.1, 0.5);
 
@@ -226,6 +250,10 @@ void Track::onAnimate(double dt) {
         box.vertex(0, boxHeight, 0);
     }
 
+    float wrapAmount = 360;
+    if (rotAngle >= wrapAmount) {
+        rotAngle -= wrapAmount;
+    }
     myRotator.fromAxisAngle(rotAngle, rX, rY, rZ);
     myRotator.normalize();
     rotatedPosition = myRotator.rotate(position);
@@ -246,6 +274,7 @@ void Track::onAnimate(double dt) {
 
 void Track::onDraw(Graphics& g) {
 
+    // switch drawModes
     switch (drawMode) {
     case 0:
         drawSphere = true;
@@ -268,11 +297,19 @@ void Track::onDraw(Graphics& g) {
         break;
     }
 
-    for (int i=0; i<outPut.size(); ++i) {
-        out += outPut[i];
+    // take the average of the audio output
+    // for drawing smoother transitions
+    if (blendCounter > 1) {
+        for (int i=0; i<outPut.size(); ++i) {
+            out += outPut[i];
+        }
+        out += previousOut;
+        out /= (outPut.size()+1)*2;
+        previousOut = out;
+        outPut.erase(outPut.begin(),outPut.end());
+        blendCounter = 0;
     }
-    out /= outPut.size()+1;
-    outPut.erase(outPut.begin(),outPut.end());
+    ++blendCounter;
 
     g.pushMatrix();
     g.color(trackColor);
@@ -304,7 +341,7 @@ void Track::onDraw(Graphics& g) {
     else if (drawSphere)
     {
         g.pushMatrix();
-        g.scale(out*2.0 + 0.03);
+        g.scale(out*1.0 + 0.06);
         g.draw(sphere);
         g.popMatrix();
     }
@@ -385,43 +422,57 @@ bool Track::resetPlayhead(float pos, bool continuePlay) {
 
 float Track::envelopeCountDown() {
 
-    // countdown until the next grain triggers
-    if (grainTriggerCounter > 0)
-    {
-        --grainTriggerCounter;
-    }
-    else
-    {
-        singleTrigger = true;
-        grainTriggerCounter = (1.0/float(triggerRate))*sr;
-        grainDurCounter = grainDur*sr;
-    }
-
-    // countdown until the end of this grain
-    if (grainDurCounter > 0)
-    {
-        --grainDurCounter;
-    }
-    else
-    {
-        trigger = false;
-        play = resetPlayhead(startTime, false);
-    }
-
-    // this marks the total duration of the envelopes,
+    // this marks the total duration of the envelopes.
+    // If envDur is 0, all envelopes are reset,
     // regardless if an individual envelope might exceed it
     if (envDur > 0)
     {
         // countdown until the end of this envelope
         --envDur;
-        return player();
     }
     else
     {
         play = false;
         resetEnvelopes();
-        return 0;
     }
+
+    // countdown until the next grain triggers
+    // but only as long as envDur is not 0
+    if ( (grainTriggerCounter > 0) && (envDur > 0) )
+    {
+        --grainTriggerCounter;
+    }
+    else
+    {
+        if (triggerMode != 1) {
+//            cout << "SINGLE" << endl;
+            singleTrigger = true;
+        }
+
+        if (triggerRate <= 0)
+        {
+            grainTriggerCounter = 0;
+        }
+        else
+        {
+            grainTriggerCounter = (1.0/float(triggerRate))*sr;
+            grainDurCounter = grainDur*sr;
+        }
+    }
+
+    // countdown until the end of this grain
+    // as long as envDur is not 0
+    if ( (grainDurCounter > 0) && (envDur > 0) )
+    {
+        --grainDurCounter;
+    }
+    else
+    {
+        play = resetPlayhead(startTime, false);
+    }
+
+    return player();
+
 }
 
 
@@ -466,22 +517,17 @@ float Track::player() {
 
     if (play)
     {
-        trigger = singleTrigger = triggerFlag = false;
+        if (compMode)
+        {
+            getEnvelopeValues();
+        }
+
+        trigger = singleTrigger = false;
         currentFreq = next(m_freqs, sampleIndex);
         // osc.phase(next(m_phases, sampleIndex));
         osc.freq(currentFreq + (fMod(FMFreq)*FMAmount*100) + freqShift);
         currentAmp = next(m_amps, sampleIndex);
-        if (compMode) {
-            gainScaler = AmpEnv.getEnvValue();
-            freqShift = FreqShiftEnv.getEnvValue();
-            AMFreq = AMEnv.getEnvValue();
-            FMFreq = FMFreqsEnv.getEnvValue();
-            FMAmount = FMAmountEnv.getEnvValue();
-            currentPlayPos = PlayPosEnv.getEnvValue();
-            playRate = PlayRateEnv.getEnvValue();
-            grainDur = GrainDurEnv.getEnvValue();
-            triggerRate = TrigRateEnv.getEnvValue();
-        }
+
 
         if (isReverse) {
             playReverse();
@@ -564,6 +610,43 @@ void Track::checkForLimits() {
     }
 }
 
+
+//----------------------------------------------------------------
+
+void Track::getEnvelopeValues() {
+
+    // check if envelopes are ready to read
+    // and if they are, get a value
+
+    if (AmpEnv.isReadytoRead)
+        gainScaler = AmpEnv.getEnvValue();
+
+    if (FreqShiftEnv.isReadytoRead)
+        freqShift = FreqShiftEnv.getEnvValue();
+
+    if (AMEnv.isReadytoRead)
+        AMFreq = AMEnv.getEnvValue();
+
+    if (FMFreqsEnv.isReadytoRead)
+        FMFreq = FMFreqsEnv.getEnvValue();
+
+    if (FMAmountEnv.isReadytoRead)
+        FMAmount = FMAmountEnv.getEnvValue();
+
+    if (PlayPosEnv.isReadytoRead)
+        currentPlayPos = PlayPosEnv.getEnvValue();
+
+    if (PlayRateEnv.isReadytoRead)
+        playRate = PlayRateEnv.getEnvValue();
+
+    if (GrainDurEnv.isReadytoRead)
+        grainDur = GrainDurEnv.getEnvValue();
+
+    if (TrigRateEnv.isReadytoRead)
+        triggerRate = TrigRateEnv.getEnvValue();
+
+}
+
 //----------------------------------------------------------------
 
 void Track::resetEnvelopes() {
@@ -589,6 +672,13 @@ void Track::resetEnvelopes() {
     playRate = playRateDefault;
     grainDur = grainDurDefault;
     triggerRate = trigRateDefault;
+
+    // reset trigger values
+    loopTrack = false;
+    singleTrigger = false;
+    trigger = false;
+    play = false;
+    triggerMode = 1;
 }
 
 

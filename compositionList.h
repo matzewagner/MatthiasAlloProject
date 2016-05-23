@@ -10,7 +10,11 @@ struct compositionList {
                                     int modelIndex,
                                     int sr,
                                     Scheduler plan,
-                                    bool &isTriggerAll
+                                    bool &isTriggerAll,
+                                    float &globalPlayRate,
+                                    double &globalPlayPosition,
+                                    int &globalTrigger,
+                                    float &globalFloatTrigger
                                     );
 };
 
@@ -21,13 +25,17 @@ void compositionList::playCompositionList(
                                             int modelIndex,
                                             int sr,
                                             Scheduler plan,
-                                            bool &isTriggerAll
+                                            bool &isTriggerAll,
+                                            float &globalPlayRate,
+                                            double &globalPlayPosition,
+                                            int &globalTrigger,
+                                            float &globalFloatTrigger
                                             )
 {
  
  				if (compTimer >= 1.0*sr && compTimer < 1.0*sr + sampleTolerance) {
-                    plan.setEvent(&myModels[modelIndex], "range: 20 : 10", 9,
-                                  "DUR: 5.0,",
+                    plan.setEvent(&myModels[modelIndex], "RANGE: 0 : 20", "UNISON", 9,
+                                  "DUR: 2.0,",
                                   "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
                                   "TRIG_RATE: 10, 20, 10, | 0.8, 0.2, [inf],",
                                   "GRAIN_DUR: 0.01, 0.2, 0.01, | 2.8, 0.2, [inf],",
@@ -38,25 +46,43 @@ void compositionList::playCompositionList(
                                   "LOOP_TRACK_TRUE:"
                                   );
                 }
-                if (compTimer >= 8.0*sr && compTimer < 8.0*sr + sampleTolerance) {
-                    plan.setEvent(&myModels[modelIndex], "all", 8,
-                                  "DUR: 5.0,",
+                if (compTimer >= 4.0*sr && compTimer < 4.0*sr + sampleTolerance) {
+                    plan.setEvent(&myModels[modelIndex], "ALL", "IN_ORDER", 7,
+                                  "DUR: 2.0,",
                                   "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
-                                  "TRIG_RATE: 10, 10, 100, | 1, 4.8, [inf],",
-                                  "GRAIN_DUR: 0.2, 0.002, 0.1, | 7, 7, [inf],",
+                                  "TRIG_RATE: 0.1, 0.1, 0.1, | 1, 4.8, [inf],",
+                                  "GRAIN_DUR: 5, 5, 5, | 7, 7, [inf],",
                                   "PLAY_POS: 0.7, 0.1, | 5.0, [inf],",
                                   "PLAY_RATE: 1.0, 1.0, 2.0, | 7.0, 7.0, [inf],",
-                                  "FREQ_SHIFT: 400, 0, 400, -200, | 1.0, 1.0, 3.0, [inf],",
-                                  "AM: 20, 400, 35, 98, | 0.1, 0.02, 0.2, [inf],",
+                                  "LOOP_TRACK_FALSE:"
+                                  );
+                    isTriggerAll = true;
+
+                }
+                if (compTimer >= 8.1*sr && compTimer < 8.1*sr + sampleTolerance) {
+                    plan.setEvent(&myModels[modelIndex], "RANGE: 0 : 20", "UNISON", 9,
+                                  "DUR: 2.0,",
+                                  "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
+                                  "TRIG_RATE: 10, 20, 10, | 0.8, 0.2, [inf],",
+                                  "GRAIN_DUR: 0.01, 0.2, 0.01, | 2.8, 0.2, [inf],",
+                                  "PLAY_POS: 0.1, 0.9, | 3.0, [inf],",
+                                  "PLAY_RATE: 1.0, 3.0, | 3.0, [inf],",
+                                  "FREQ_SHIFT: 0, 400, 0, -200, | 1.0, 1.0, 1.0, [inf],",
+                                  "AM: 20, 400, 35, 98, | 0.1, 0.02, 0.2, ",
                                   "LOOP_TRACK_TRUE:"
                                   );
                 }
-                if (compTimer >= 11*sr && compTimer < 11*sr + sampleTolerance) {
-                      isTriggerAll = true;
-//                    plan.setEvent(&myModels[modelIndex], "0, 1", 2,
-//                                  "FM_FREQ: 200, 100, 10, 0, | 0.25, 0.07, 0.1,",
-//                                  "FM_AMOUNT: 10,"
-//                                  );
+                if (compTimer >= 11.0*sr && compTimer < 11.0*sr + sampleTolerance) {
+                    plan.setEvent(&myModels[modelIndex], "ALL", "IN_ORDER", 7,
+                                  "DUR: 2.0,",
+                                  "AMP: 0, 1, 1, 0, | 0.1, 4.8, 0.1, [inf],",
+                                  "TRIG_RATE: 0.1, 0.1, 0.1, | 1, 4.8, [inf],",
+                                  "GRAIN_DUR: 5, 5, 5, | 7, 7, [inf],",
+                                  "PLAY_POS: 0.7, 0.1, | 5.0, [inf],",
+                                  "PLAY_RATE: 1.0, 1.0, 2.0, | 7.0, 7.0, [inf],",
+                                  "LOOP_TRACK_FALSE:"
+                                  );
+                    isTriggerAll = true;
                 }
 //                if (compTimer >= 3.0*sr && compTimer < 3.0*sr + sampleTolerance) {
 //                    plan.setEvent(&myModels[modelIndex], "3, 45", 1,

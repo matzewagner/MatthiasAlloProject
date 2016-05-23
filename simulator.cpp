@@ -86,7 +86,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     Sim() : maker(Simulator::defaultBroadcastIP()),
             InterfaceServerClient(Simulator::defaultInterfaceServerIP())
-    // soundfile, duration, fundamental, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, freqMin, freqMax, maxNTracks, getLoudestTracks, modelName
+    // sf, dur, f0, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, frqMin, frqMax, maxNTracks, getLoudestTracks, modelName
 //            myModels{
 //              { filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines"}, // good
 //            {"Piano_A3.aiff", 3.0, 220, 44100, 0.2, 0.2, 0.008, 0.5, -150, 0.05, 50, 15000, 100, false, "pianoA4Model"}, // good
@@ -112,8 +112,8 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 //            {"Bell_152Hz.aiff", 5.0, 152, 44100, 0.2, 0.2, 0.024, 0.5, -120, 0.55, 50, 15000, 100, false, "bellModel"}, // ok
 //            }
     {
-        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.05, 20, 15000, 100, true, "Icarus");
-//        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
+//        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 90, true, "Icarus");
+        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
         myModels[1] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
 //        myModels[2] = new LorisModel(filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 10, false, "pianoA3Model");
 
@@ -177,11 +177,13 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                 myModels[j]->myTracks[i].spherePosition = Vec3f(sphericalToX, sphericalToY, sphericalToZ);
 
                 // line position
-                myModels[j]->myTracks[int(myModels[j]->nTracks - (i+1))].linePosition = Vec3f(0, 0, ((i*lineLength)-(lineLength*myModels[j]->nTracks*0.75))/float(myModels[j]->nTracks));
+                myModels[j]->myTracks[int(myModels[j]->nTracks - (i+1))].linePosition =
+                        Vec3f(0, 0, ((i*lineLength)-(lineLength*myModels[j]->nTracks*0.75))/float(myModels[j]->nTracks));
 
                 // highest freqs closest position
                 float freqScaler = myModels[modelIndex]->myTracks[0].freqFactor*3;
-                myModels[j]->myTracks[i].hiFreqsClosestPos = Vec3f(0, 0, (15000*freqScaler) - myModels[j]->myTracks[i].freqAverage*freqScaler);
+                myModels[j]->myTracks[i].hiFreqsClosestPos =
+                        Vec3f(0, 0, (15000*freqScaler) - myModels[j]->myTracks[i].freqAverage*freqScaler);
 
                 // loudest tracks furthest position
                 myModels[j]->myTracks[i].loudestAwayPos = Vec3f(0, 0, -myModels[j]->myTracks[i].level*0.001);
@@ -430,7 +432,8 @@ void pollOSC() {
         Yrotation = (rotY.get()*10) - 5.0;
         Zrotation = (rotZ.get()*10) - 5.0;
 
-        accumRotation = accRot.get();
+//        accumRotation = accRot.get();
+        accumRotation = true;
         for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
             if (accumRotation) {
                 myModels[modelIndex]->myTracks[i].rotAngle += rotator;
@@ -594,8 +597,11 @@ void pollOSC() {
         light.pos(nav().pos());
 
         rotator += rotAmount;
-        if (rotator >= 2*M_PI)
-            rotator -= 2*M_PI;
+//        float wrapAmount = 1.0;
+//        if (rotator >= wrapAmount) {
+//            rotator -= wrapAmount;
+//        }
+
         // update other state values
         state->modelIndex = modelIndex;
         state->frame++;
@@ -605,10 +611,9 @@ void pollOSC() {
     }
 
     virtual void onExit() {
-       for (int i=0; i<NUM_MODELS; ++i) {
-           delete myModels[i];
-       }
-       cout << "exiting" << endl;
+//       for (int i=0; i<NUM_MODELS; ++i) {
+//           delete myModels[i];
+//       }
     }
 
     virtual void onSound(AudioIOData &io) {
@@ -620,6 +625,7 @@ void pollOSC() {
             init_trigger_flag = false;
         }
 
+        // poll OSC messages
         if (!playComp) {
             pollOSC();
         }
@@ -630,6 +636,15 @@ void pollOSC() {
                         myModels[modelIndex]->myTracks[i].rotatedPosition[1],
                         myModels[modelIndex]->myTracks[i].rotatedPosition[2]
                         );
+
+            if (playComp)
+            {
+                myModels[modelIndex]->myTracks[i].compMode = true;
+            }
+            else if (!playComp)
+            {
+                myModels[modelIndex]->myTracks[i].compMode = false;
+            }
         }
         // output value
         float s = 0;
@@ -640,36 +655,24 @@ void pollOSC() {
             if (looper) {
                 trigger = int(floatTrigger)%int(loopLength * sr);
 
-                // check each track for trigger within a time threshold (hard-coded)
-                if (abs(trigger) < 5) {
-                    for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-                        // set triggerFlag to prevent continuous triggering;
-                        // this is set to false immediately after triggering from within the track;
-                        myModels[modelIndex]->myTracks[i].triggerFlag = true;
-                    }
-                }
                 // if playhead moves forward, reset floatTrigger to positive offset (hard-coded)
                 if (abs(trigger) < 5 && globalPlayRate > 0) floatTrigger = 6.0;
                 // if playhead moves backwards, reset floatTrigger to negative offset (hard-coded)
                 else if (abs(trigger) < 5 && globalPlayRate < 0) floatTrigger = -6.0;
-
             }
+
+
             // if triggering manually, set trigger to 0
             if (isTriggerAll) {
-                for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-                    // set triggerFlag to prevent continuous triggering;
-                    // this is set to false immediately after triggering from within the track;
-                    myModels[modelIndex]->myTracks[i].triggerFlag = true;
-                }
-                trigger = floatTrigger = 0;
+                trigger = 0;
+                floatTrigger = 0;
                 isTriggerAll = false;
             }
 
-            // keeping track of global playhead position in regards to all tracks of the entire sound
+            // keeping track of global playhead position in regards to all tracks of the entire model
             int globalPlayHeadPos = trigger+(playPosition*sr);
 
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-
                 // get start and end time for each track
                 int trackStartTime = myModels[modelIndex]->myTracks[i].startTime*sr;
                 int trackEndTime = myModels[modelIndex]->myTracks[i].endTime*sr;
@@ -681,19 +684,10 @@ void pollOSC() {
                     myModels[modelIndex]->myTracks[i].trigger = true;
                 }
 
-                if (playComp)
-                {
-                    myModels[modelIndex]->myTracks[i].compMode = true;
-                }
-                else if (!playComp)
-                {
-                    myModels[modelIndex]->myTracks[i].compMode = false;
-                }
                 // add each agent's sound output to global output
                 s = myModels[modelIndex]->myTracks[i].onSound()*globalAmp*5.25;
                 tap[i].writeSample((s));
             }
-
 
             // increment trigger timer
             floatTrigger += globalPlayRate;
@@ -705,20 +699,20 @@ void pollOSC() {
             int sampleTolerance = 1;
 
             if (playComp) {
-                  compositionList::playCompositionList(compTimer, sampleTolerance, *myModels, modelIndex, sr, plan, isTriggerAll);
+                  compositionList::playCompositionList(compTimer,
+                                                       sampleTolerance,
+                                                       *myModels,
+                                                       modelIndex,
+                                                       sr,
+                                                       plan,
+                                                       isTriggerAll,
+                                                       globalPlayRate,
+                                                       playPosition,
+                                                       trigger,
+                                                       floatTrigger
+                                                       );
             }
         }
-
-//        int trackNum = 100;
-//        cout << "Trigger: " << trigger
-//             << "\t fTrigger: " << floatTrigger
-//             << "\t playRate: " << globalPlayRate
-//             << "\t global playPos: " << playPosition
-//             << "\t track playpos: " << myModels[modelIndex]->myTracks[trackNum].playPosition
-//             << "\t starPos: " << myModels[modelIndex]->myTracks[trackNum].startTime
-//             << "\t endPos: " << myModels[modelIndex]->myTracks[trackNum].endTime
-//             << "\t play: " << bool(myModels[modelIndex]->myTracks[trackNum].play)
-//             << endl;
 
         listener()->pose(nav());
         scene()->render(io);
@@ -767,33 +761,6 @@ void pollOSC() {
             }
             cout << "\ngainScale: " << myModels[modelIndex]->myTracks[0].gainScaler << endl;
         } else if (k.key() == '{') {
-            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-                myModels[modelIndex]->myTracks[i].oscAmount -= 0.1;
-                if (myModels[modelIndex]->myTracks[i].oscAmount < 0.0)
-                    myModels[modelIndex]->myTracks[i].oscAmount = 0.0;
-            }
-            cout << "\noscillator amount: " << myModels[modelIndex]->myTracks[0].oscAmount << endl;
-        } else if (k.key() == '}') {
-            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-                myModels[modelIndex]->myTracks[i].oscAmount += 0.1;
-                if (myModels[modelIndex]->myTracks[i].oscAmount < 0.0)
-                    myModels[modelIndex]->myTracks[i].oscAmount = 0.0;
-            }
-            cout << "\noscillator amount: " << myModels[modelIndex]->myTracks[0].oscAmount << endl;
-        } else if (k.key() == '[') {
-            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-                myModels[modelIndex]->myTracks[i].noiseAmount -= 0.5;
-                if (myModels[modelIndex]->myTracks[i].noiseAmount < 0.0)
-                    myModels[modelIndex]->myTracks[i].noiseAmount = 0.0;
-            }
-            cout << "\nnoise amount: " << myModels[modelIndex]->myTracks[0].noiseAmount << endl;
-        } else if (k.key() == ']') {
-            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-                myModels[modelIndex]->myTracks[i].noiseAmount += 0.5;
-                if (myModels[modelIndex]->myTracks[i].noiseAmount < 0.0)
-                    myModels[modelIndex]->myTracks[i].noiseAmount = 0.0;
-            }
-            cout << "\nnoise amount: " << myModels[modelIndex]->myTracks[0].noiseAmount << endl;
         } else if (k.key() == '(') {
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 myModels[modelIndex]->myTracks[i].velocityScaler /= 1.5;
