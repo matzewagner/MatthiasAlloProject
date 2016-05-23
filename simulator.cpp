@@ -112,8 +112,8 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 //            {"Bell_152Hz.aiff", 5.0, 152, 44100, 0.2, 0.2, 0.024, 0.5, -120, 0.55, 50, 15000, 100, false, "bellModel"}, // ok
 //            }
     {
-//        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 90, true, "Icarus");
-        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
+        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 90, true, "Icarus");
+//        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
         myModels[1] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
 //        myModels[2] = new LorisModel(filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 10, false, "pianoA3Model");
 
@@ -130,9 +130,9 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         // turn this off to preserve performance
         scene()->usePerSampleProcessing(false);
 
-//        addSphere(ball, 1, 64, 64);
-//        ball.generateNormals();
-//        ball.primitive(Graphics::TRIANGLES);
+        addSphere(ball, 1, 64, 64);
+        ball.generateNormals();
+        ball.primitive(Graphics::TRIANGLES);
 
         state->colorGain = 300;
         state->frame = 0;
@@ -475,9 +475,17 @@ void pollOSC() {
     virtual void onDraw(Graphics& g, const Viewpoint& v) {
     g.clear(Graphics::COLOR_BUFFER_BIT | Graphics::DEPTH_BUFFER_BIT);
     g.clearColor(0, 0, 0, 1.0);
-    g.blendTrans();
-    g.depthTesting(true);
 
+    material();
+    light();
+    g.pushMatrix();
+    g.scale(0.25);
+    g.color(Vec4f(1.0, 0, 0, 1.0));
+    g.draw(ball);
+    g.popMatrix();
+
+        g.blendTrans();
+        g.depthTesting(true);
         // draw each agent
         for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
             material();
@@ -714,7 +722,8 @@ void pollOSC() {
             }
         }
 
-        listener()->pose(nav());
+        //listener()->pose(nav());
+        listener->pos(Vec3f(0,0,0));
         scene()->render(io);
     }
 

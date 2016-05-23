@@ -133,8 +133,8 @@ Track::Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>
     addSphere(sphere, 1, 64, 64);
     sphere.generateNormals();
 
-    spectralPosition = Vec3f(startTime, freqToY - (15000*freqFactor*0.5), 0);
-    nullPosition = Vec3f(0, 0, 0);
+    spectralPosition = Vec3f(startTime, freqToY - (10000*freqFactor*0.5), -10);
+    nullPosition = Vec3f(0, 0, -10);
     randPosition = Vec3f(rnd::uniformS(L), rnd::uniformS(L), rnd::uniformS(L));
     positionScaler = 1.0;
     velocity = Vec3f(rnd::uniformS(10.0), rnd::uniformS(10.1), rnd::uniformS(10.2))*velocityScaler;
@@ -250,7 +250,8 @@ void Track::onAnimate(double dt) {
         box.vertex(0, boxHeight, 0);
     }
 
-    float wrapAmount = 360;
+
+    float wrapAmount = 2*M_PI;
     if (rotAngle >= wrapAmount) {
         rotAngle -= wrapAmount;
     }
@@ -536,10 +537,13 @@ float Track::player() {
         }
 
         s = (osc()*(aMod(AMFreq)*0.5)+0.5)*currentAmp*gainScaler*mute;
-        if (s >= 0.99) s = 0.99;
-        else if (s <= -0.99) s = -0.99;
 
+        // for drawing
         outPut.push_back(abs(s));
+
+        float clip = 1.0/float(2.0);
+        if (s >= clip) s = clip;
+        else if (s <= -clip) s = -clip;
 
         return s;
     }
