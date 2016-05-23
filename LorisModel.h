@@ -85,12 +85,13 @@ LorisModel::LorisModel(string fN,
 
     cout << "Model generated." << "\nNumber of partials: " << nPartials << endl;
 
+    cout << "Assigning partials to tracks ... " << endl;
     int trackCount = 0;
 
     // for every partial in the model
     for (auto listIt = partials->begin(); listIt != partials->end(); ++listIt) {
 
-        int sampleCounter = 0;
+        long sampleCounter = 0;
         double currentFreq = 0;
         double freqSum = 0, frqAverage = 0;
         double currentAmp = 0;
@@ -162,6 +163,8 @@ LorisModel::LorisModel(string fN,
 
     // sort tracks according to RMS to ensure we get the all the most prominent partials
     if (getLoudestTracks) {
+        cout << "Looking for the loudest tracks from [" << tempTracks.size() << "] ..." << endl;
+
         sort(tempTracks.begin(), tempTracks.end(), featureCompare("rms"));
 
         for (int i=0; i<maxNTracks; ++i) {

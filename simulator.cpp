@@ -112,10 +112,13 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 //            {"Bell_152Hz.aiff", 5.0, 152, 44100, 0.2, 0.2, 0.024, 0.5, -120, 0.55, 50, 15000, 100, false, "bellModel"}, // ok
 //            }
     {
-        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 90, true, "Icarus");
+//        myModels[0] = new LorisModel(filePath[5], 8.0, 90, 44100, 0.2, 0.2, 0.024, 0.25, -105, 0.015, 20, 15000, 90, true, "Sarah");
+//        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 90, true, "Icarus");
 //        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
-        myModels[1] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
-//        myModels[2] = new LorisModel(filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 20000, 10, false, "pianoA3Model");
+//        myModels[1] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
+//        myModels[0] = new LorisModel(filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 10000, 60, false, "pianoA3Model");
+        myModels[0] = new LorisModel(filePath[6], 4.0, 65, 44100, 0.4, 0.25, 0.032, 0.5, -120, 0.015, 20, 15000, 63, false, "pianoC2Model");
+        // sf, dur, f0, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, frqMin, frqMax, maxNTracks, getLoudestTracks, modelName
 
         modelIndex = 0;
 
@@ -126,10 +129,12 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         initWindow(Window::Dim(0, 0, 600, 400), "Control Center", 60);
 
         AlloSphereAudioSpatializer::initAudio();
+        AlloSphereAudioSpatializer::audioIO().framesPerBuffer(1024);
         AlloSphereAudioSpatializer::initSpatialization();
         // turn this off to preserve performance
         scene()->usePerSampleProcessing(false);
 
+        // draw listener
         addSphere(ball, 1, 64, 64);
         ball.generateNormals();
         ball.primitive(Graphics::TRIANGLES);
@@ -484,7 +489,7 @@ void pollOSC() {
     g.draw(ball);
     g.popMatrix();
 
-        g.blendTrans();
+        //g.blendTrans();
         g.depthTesting(true);
         // draw each agent
         for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
@@ -619,9 +624,6 @@ void pollOSC() {
     }
 
     virtual void onExit() {
-//       for (int i=0; i<NUM_MODELS; ++i) {
-//           delete myModels[i];
-//       }
     }
 
     virtual void onSound(AudioIOData &io) {
@@ -654,6 +656,7 @@ void pollOSC() {
                 myModels[modelIndex]->myTracks[i].compMode = false;
             }
         }
+
         // output value
         float s = 0;
 
@@ -669,7 +672,6 @@ void pollOSC() {
                 else if (abs(trigger) < 5 && globalPlayRate < 0) floatTrigger = -6.0;
             }
 
-
             // if triggering manually, set trigger to 0
             if (isTriggerAll) {
                 trigger = 0;
@@ -677,20 +679,24 @@ void pollOSC() {
                 isTriggerAll = false;
             }
 
+
             // keeping track of global playhead position in regards to all tracks of the entire model
             int globalPlayHeadPos = trigger+(playPosition*sr);
 
+            // for each track
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-                // get start and end time for each track
+                // get start and end time
                 int trackStartTime = myModels[modelIndex]->myTracks[i].startTime*sr;
                 int trackEndTime = myModels[modelIndex]->myTracks[i].endTime*sr;
 
-                // if playhead is in range for the track, trigger it
+                // if playhead is in range for the track,
+                // set playhead position and playrate and trigger it
                 if ((globalPlayHeadPos >= trackStartTime) && (globalPlayHeadPos <= trackEndTime)) {
                     myModels[modelIndex]->myTracks[i].playRate = globalPlayRate;
                     myModels[modelIndex]->myTracks[i].playPosition = double(globalPlayHeadPos/double(sr));
                     myModels[modelIndex]->myTracks[i].trigger = true;
                 }
+
 
                 // add each agent's sound output to global output
                 s = myModels[modelIndex]->myTracks[i].onSound()*globalAmp*5.25;
@@ -723,7 +729,7 @@ void pollOSC() {
         }
 
         //listener()->pose(nav());
-        listener->pos(Vec3f(0,0,0));
+        listener()->pos(0,0,0);
         scene()->render(io);
     }
 
@@ -846,7 +852,18 @@ void pollOSC() {
         } else if (k.key() == 'P') {
             playComp = false;
             cout << "live mode" << endl;
+        } else if (k.key() == 'r') {
+            resetRot.set(1.0);
+            resetRotation = 1.0;
+            accRot.set(0.0);
+            for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
+                myModels[modelIndex]->myTracks[i].rotAngle = 0;
+                myModels[modelIndex]->myTracks[i].rX = 0;
+                myModels[modelIndex]->myTracks[i].rY = 0;
+                myModels[modelIndex]->myTracks[i].rZ = 0;
+            }
         }
+
 
     }
 };
@@ -855,8 +872,8 @@ int main(){
 
     SearchPaths myPath;
     myPath.addAppPaths();
-    string fileName[] = {"Piano_A3.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Icarus.aiff", "sineMelodyN.aiff"};
-    for (int i=0; i<5; ++i) {
+    std::string fileName[] = {"Piano_A3.aiff","Violin_248Hz.aiff","Trumpet_A4.aiff","Icarus.aiff", "sineMelodyN.aiff", "Sarah.aiff","Piano_C2.aiff"};
+    for (int i=0; i<7; ++i) {
         filePath[i] = myPath.find(fileName[i]).filepath();
         cout << "\nfile path " << i << ": " << filePath[i] << endl;
     }

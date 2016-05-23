@@ -20,9 +20,6 @@ struct trackEnv {
 
 void trackEnv::setTrackEnv(ParamList &source) {
 
-    // check that we can write to the envelope
-    if (isReset) {
-
             envIndex = 0;
             // return if there are no values to compute
             if (source.eventValues.empty()) {
@@ -72,11 +69,6 @@ void trackEnv::setTrackEnv(ParamList &source) {
 
             // set envelope ready to read
             isReadytoRead = true;
-    }
-    else
-    {
-        return;
-    }
 }
 
 //----------------------------------------------------------------

@@ -98,6 +98,12 @@ void Scheduler::getTrackIDs(const std::string &trackIDs, vector<int> &trax) {
     if (s.find(allKey) != std::string::npos)
     {
         allTracks = true;
+
+        if (printEnvelopes) {
+            cout << "Tracks: ";
+            cout << "ALL" << endl;
+        }
+
         return;
     }
     else if (s.find(rangeKey) != std::string::npos)
@@ -141,7 +147,16 @@ void Scheduler::getTrackIDs(const std::string &trackIDs, vector<int> &trax) {
         }
 
         allTracks = false;
+
+        if(printEnvelopes) {
+            cout << "Tracks: ";
+            for (int i=0; i<trax.size(); ++i) {
+                cout << trax[i] << ", ";
+            }
+            cout << endl;
+        }
     }
+
 }
 
 //----------------------------------------------------------------

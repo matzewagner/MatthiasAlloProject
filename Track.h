@@ -118,7 +118,7 @@ Track::Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>
     nSamples = sr * duration;
     sampleStep = 1.0/float(sr);
     ampFactor = 1.0;
-    freqFactor = 0.0005;
+    freqFactor = 0.002;
     freqToY = m_freqs[0]*freqFactor;
     playPosition = 0.0;
     rotAngle = 0;
@@ -133,7 +133,7 @@ Track::Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>
     addSphere(sphere, 1, 64, 64);
     sphere.generateNormals();
 
-    spectralPosition = Vec3f(startTime, freqToY - (10000*freqFactor*0.5), -10);
+    spectralPosition = Vec3f(startTime, freqToY - (5000*freqFactor*0.5), -10);
     nullPosition = Vec3f(0, 0, -10);
     randPosition = Vec3f(rnd::uniformS(L), rnd::uniformS(L), rnd::uniformS(L));
     positionScaler = 1.0;
@@ -183,6 +183,7 @@ Track::Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>
     drawSphere = true;
     selected = drawSelected = false;
     compMode = false;
+    rotAngle = rX = rY = rZ = 0;
 
     osc.freq(m_freqs[0]);
     aMod.freq(0.0);
@@ -219,8 +220,8 @@ void Track::onAnimate(double dt) {
     }
     else if(drawSphere)
     {
-        offColor = 0.5;
-        audioColor *= 0.5;
+        offColor = 0.25;
+        audioColor *= 0.75;
         trackColor = Color( offColor + (1.0 * audioColor),
                             offColor + (0.5 * audioColor),
                             offColor + (0.5 * audioColor),
@@ -672,7 +673,7 @@ void Track::resetEnvelopes() {
     AMFreq = AMDefault;
     FMFreq = FMFreqDefault;
     FMAmount = FMAmountDefault;
-    currentPlayPos = playPosDefault;
+    currentPlayPos = playPosition = startTime;
     playRate = playRateDefault;
     grainDur = grainDurDefault;
     triggerRate = trigRateDefault;
