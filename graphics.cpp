@@ -52,9 +52,11 @@ struct Gra : OmniStereoGraphicsRenderer {
 
     selectedColor = RGB(0.5, 0, 0.5);
 
-    light.ambient(Color(0.5, 0.5, 0.5, 0.0));
-    light.diffuse(Color(0.5, 0.5, 0.5, 1.0));
-    light.specular(Color(0.5, 0.5, 0.5, 1.0));
+    // for testing, set each lighting mode to a different RGB max
+    // and look what effect each one has
+    light.ambient(Color(0.25, 0.25, 0.25, 0.0));
+    light.diffuse(Color(0.25, 0.25, 0.25, 1.0));
+    light.specular(Color(0.25, 0.25, 0.25, 1.0));
   }
 
   virtual ~Gra() {}

@@ -47,7 +47,6 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     double time = 0;
     int trigger = 0;
     float floatTrigger = 0;
-    double now = 0;
     int target = 2;
     float mappedCircle, sphericalToX, sphericalToY, sphericalToZ;
     float rad = 7.5;
@@ -75,9 +74,6 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     bool playComp = false;
 
     unsigned long compTimer = 0;
-
-    gam::SamplePlayer<> loadBuffer;
-    Reverb<float> reverb;
 
     LorisModel *myModels[NUM_MODELS];
     Scheduler plan;
@@ -114,10 +110,10 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     {
 //        myModels[0] = new LorisModel(filePath[5], 8.0, 90, 44100, 0.2, 0.2, 0.024, 0.25, -105, 0.015, 20, 15000, 90, true, "Sarah");
 //        myModels[0] = new LorisModel(filePath[3], 2.0, 135, 44100, 0.01, 0.2, 0.024, 0.25, -180, 0.015, 20, 15000, 90, true, "Icarus");
-//        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
+       // myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
 //        myModels[1] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
 //        myModels[0] = new LorisModel(filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 10000, 60, false, "pianoA3Model");
-        myModels[0] = new LorisModel(filePath[6], 4.0, 65, 44100, 0.4, 0.25, 0.032, 0.5, -60, 0.015, 20, 15000, 63, false, "pianoC2Model");
+        myModels[0] = new LorisModel(filePath[6], 4.0, 65, 44100, 0.4, 0.25, 0.032, 0.5, -60, 0.015, 20, 15000, 64, false, "pianoC2Model");
         // sf, dur, f0, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, frqMin, frqMax, maxNTracks, getLoudestTracks, modelName
 
         modelIndex = 0;
@@ -166,7 +162,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                 myModels[j]->myTracks[i].squarePosition = Vec3f(
                                                 x*wallScaler - ((sqrt(myModels[j]->myTracks.size())/2.0)*wallScaler),
                                                 y*wallScaler - ((sqrt(myModels[j]->myTracks.size())/2.0)*wallScaler),
-                                                0.0
+                                                -rad
                                                 );
 
                 // circle position
@@ -209,7 +205,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         }
 
         // initialize state values
-        nav().pos(0, 0, 25);
+        nav().pos(0, 0, 0);
         light.pos(nav().pos());
 
         for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
@@ -489,20 +485,20 @@ void pollOSC() {
     virtual void onCreate(const ViewpointWindow& win) {
         static cuttlebone::Stats fps("onSound()");
         fps(AlloSphereAudioSpatializer::audioIO().secondsPerBuffer());
-        graphics().blending(true);
+        // graphics().blending(true);
     }
 
     virtual void onDraw(Graphics& g, const Viewpoint& v) {
-    g.clear(Graphics::COLOR_BUFFER_BIT | Graphics::DEPTH_BUFFER_BIT);
-    g.clearColor(0, 0, 0, 1.0);
+        g.clear(Graphics::COLOR_BUFFER_BIT | Graphics::DEPTH_BUFFER_BIT);
+        g.clearColor(0, 0, 0, 1.0);
 
-    material();
-    light();
-    g.pushMatrix();
-    g.scale(0.25);
-    g.color(Vec4f(1.0, 0, 0, 1.0));
-    g.draw(ball);
-    g.popMatrix();
+        material();
+        light();
+        g.pushMatrix();
+        g.scale(0.025);
+        g.color(Vec4f(1.0, 0, 0, 1.0));
+        g.draw(ball);
+        g.popMatrix();
 
         //g.blendTrans();
         g.depthTesting(true);
@@ -523,7 +519,7 @@ void pollOSC() {
         static cuttlebone::Stats fps("Agent::step");
         fps(dt);
 
-        // send values to state
+//         // send values to state
         for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
             myModels[modelIndex]->myTracks[i].rotAngle += rotAmount;
             myModels[modelIndex]->myTracks[i].onAnimate(dt);
@@ -644,7 +640,6 @@ void pollOSC() {
     }
 
     virtual void onSound(AudioIOData &io) {
-
         // set trigger initially to modelEndTime to prevent triggering
         if (init_trigger_flag) {
             floatTrigger = myModels[modelIndex]->modelEndTime*sr;
@@ -722,6 +717,7 @@ void pollOSC() {
 
             // increment trigger timer
             floatTrigger += globalPlayRate;
+            // floatTrigger += 1.0;
             trigger = int(floatTrigger)%(INT_MAX);
 
             // increment composition scheduler
@@ -745,9 +741,10 @@ void pollOSC() {
             }
         }
 
-        //listener()->pose(nav());
+        listener()->pose(nav());
         listener()->pos(0,0,0);
         scene()->render(io);
+    
     }
 
     virtual void onKeyDown(const ViewpointWindow&, const Keyboard& k) {
