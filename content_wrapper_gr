@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export DISPLAY=:0
+export HOME=/home/sphere
+export PATH=/home/sphere/bin:/home/sphere/bin/content_scripts:$PATH
+export TERM=""
+cd /home/sphere/code/matthias/SineModel/SineModel/AlloSystem/build/bin
+
+$@
