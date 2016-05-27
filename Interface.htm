@@ -12,9 +12,9 @@
 	var page2 = new Interface.Panel({
 		useRelativeSizesAndPositions: true,
 	});
-	var page3 = new Interface.Panel({
-		useRelativeSizesAndPositions: true,
-	});
+	// var page3 = new Interface.Panel({
+	// 	useRelativeSizesAndPositions: true,
+	// });
 	var page4 = new Interface.Panel({
 		useRelativeSizesAndPositions: true,
 	});
@@ -778,63 +778,63 @@
 //-------------------------------------------------------------------
 	
 
-	var mySelectButton = [];
-	var numButtons = 100;
-	var columns = 10;
-	var rows = 10;
-	var index = 0;
-	for (var j=0; j<columns; ++j) {
-		for (var i=0; i<rows; ++i) {
-			var selectButtonKey = '/Select'+index;
-			 mySelectButton[i] = new Interface.Button({
-				bounds:[j/rows, i*(0.8/rows), .1, 0.8/rows],
-				label: index,
-				isVertical:false,
-				value:0,
-				fill: 'magenta',
-				stroke: 'black',
-				background: 'grey',
-				target: 'OSC',
-				key: selectButtonKey,
-				onvaluechange : function() {
-				}
-			});
-		 	page3.add(mySelectButton[i]);
-		 	++index;
-		}
-	}
-	var selectNone = new Interface.Button({
-		bounds:[slider_x_margin + buttonWidth*1 + margin*1, (extra_y_margin*1) + (slider_thickness+margin)*10, .1, slider_thickness],
-		label: 'select none',
-		mode:'momentary',
-		isVertical:false,
-		value:0,
-		fill: 'white',
-		stroke: sliderStrokeColor,
-		background: 'grey',
-		target: 'OSC',
-		key:'/SelectNone',
-		onvaluechange : function() {
-			selectAll.setValue( (0) );
-			selectAll.sendTargetMessage();
-		}
-	});
-	var selectAll = new Interface.Button({
-		bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*10, .1, slider_thickness],
-		label: 'select all',
-		mode:'toggle',
-		isVertical:false,
-		value:0,
-		fill: 'magenta',
-		stroke: sliderStrokeColor,
-		background: 'grey',
-		target: 'OSC',
-		key:'/SelectAll',
-		onvaluechange : function() {
-		}
-	});
-	page3.add(selectAll, selectNone);
-	page3.background = 'black';
+	// var mySelectButton = [];
+	// var numButtons = 100;
+	// var columns = 10;
+	// var rows = 10;
+	// var index = 0;
+	// for (var j=0; j<columns; ++j) {
+	// 	for (var i=0; i<rows; ++i) {
+	// 		var selectButtonKey = '/Select'+index;
+	// 		 mySelectButton[i] = new Interface.Button({
+	// 			bounds:[j/rows, i*(0.8/rows), .1, 0.8/rows],
+	// 			label: index,
+	// 			isVertical:false,
+	// 			value:0,
+	// 			fill: 'magenta',
+	// 			stroke: 'black',
+	// 			background: 'grey',
+	// 			target: 'OSC',
+	// 			key: selectButtonKey,
+	// 			onvaluechange : function() {
+	// 			}
+	// 		});
+	// 	 	page3.add(mySelectButton[i]);
+	// 	 	++index;
+	// 	}
+	// }
+	// var selectNone = new Interface.Button({
+	// 	bounds:[slider_x_margin + buttonWidth*1 + margin*1, (extra_y_margin*1) + (slider_thickness+margin)*10, .1, slider_thickness],
+	// 	label: 'select none',
+	// 	mode:'momentary',
+	// 	isVertical:false,
+	// 	value:0,
+	// 	fill: 'white',
+	// 	stroke: sliderStrokeColor,
+	// 	background: 'grey',
+	// 	target: 'OSC',
+	// 	key:'/SelectNone',
+	// 	onvaluechange : function() {
+	// 		selectAll.setValue( (0) );
+	// 		selectAll.sendTargetMessage();
+	// 	}
+	// });
+	// var selectAll = new Interface.Button({
+	// 	bounds:[slider_x_margin + buttonWidth*0 + margin*0, (extra_y_margin*1) + (slider_thickness+margin)*10, .1, slider_thickness],
+	// 	label: 'select all',
+	// 	mode:'toggle',
+	// 	isVertical:false,
+	// 	value:0,
+	// 	fill: 'magenta',
+	// 	stroke: sliderStrokeColor,
+	// 	background: 'grey',
+	// 	target: 'OSC',
+	// 	key:'/SelectAll',
+	// 	onvaluechange : function() {
+	// 	}
+	// });
+	// page3.add(selectAll, selectNone);
+	// page3.background = 'black';
 
 //-------------------------------------------------------------------
 	
@@ -884,7 +884,7 @@
 
 // ------------------------------------------------------------------
 	
-	var pages = [ page1, page2, page3, page4 ], currentPage;
+	var pages = [ page1, page2, page4 ], currentPage;
 
 	var $ = Interface.get$()
 

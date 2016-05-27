@@ -683,7 +683,8 @@ void pollOSC() {
         while (io()) {
 
             // if looping, trigger is the modulo of the looplength
-            if (looper) {
+            if (looper)
+            {
                 trigger = int(floatTrigger)%int(loopLength * sr);
 
                 // if playhead moves forward, reset floatTrigger to positive offset (hard-coded)
@@ -693,10 +694,11 @@ void pollOSC() {
             }
 
             // if triggering manually, set trigger to 0
-            if (isTriggerAll) {
+            if (isTriggerAll)
+            {
                 trigger = 0;
                 floatTrigger = 0;
-                isTriggerAll = false;
+                // isTriggerAll = false;
             }
 
 
@@ -711,12 +713,12 @@ void pollOSC() {
 
                 // if playhead is in range for the track,
                 // set playhead position and playrate and trigger it
-                if ((globalPlayHeadPos >= trackStartTime) && (globalPlayHeadPos <= trackEndTime)) {
+                if ((globalPlayHeadPos >= trackStartTime) && (globalPlayHeadPos <= trackEndTime))
+                {
                     myModels[modelIndex]->myTracks[i].playRate = globalPlayRate;
                     myModels[modelIndex]->myTracks[i].playPosition = double(globalPlayHeadPos/double(sr));
                     myModels[modelIndex]->myTracks[i].trigger = true;
                 }
-
 
                 // add each agent's sound output to global output
                 s = myModels[modelIndex]->myTracks[i].onSound()*globalAmp*5.25;
