@@ -39,12 +39,12 @@ struct State {
 
     void print() {
         // print something
-        // for (int i=0; i<N_TRACKS; ++i) {
-        // 	cout << g_Models[modelIndex].g_Tracks[i].nSamples << endl;
+        for (int i=0; i<N_TRACKS; ++i) {
+        	// cout << g_Models[modelIndex].g_Tracks[i].nSamples << endl;
 
-    		// if (g_Models[modelIndex].g_Tracks[i].sample != 0)
-      //   		cout << g_Models[modelIndex].g_Tracks[i].sample*10 << endl;
-        // }
+    		if (g_Models[modelIndex].g_Tracks[i].sample != 0)
+        		cout << g_Models[modelIndex].g_Tracks[i].sample*10 << endl;
+        }
         	// cout << modelIndex << endl;
     	// cout << g_Models[modelIndex].numTracks << endl;
     }

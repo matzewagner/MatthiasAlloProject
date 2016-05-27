@@ -252,9 +252,9 @@ void Track::onAnimate(double dt) {
     }
 
 
-    float wrapAmount = 2*M_PI;
+    float wrapAmount = M_PI;
     if (rotAngle >= wrapAmount) {
-        rotAngle -= wrapAmount;
+        rotAngle = -wrapAmount;
     }
     myRotator.fromAxisAngle(rotAngle, rX, rY, rZ);
     myRotator.normalize();
