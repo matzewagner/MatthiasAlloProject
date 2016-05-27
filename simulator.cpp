@@ -162,7 +162,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                 myModels[j]->myTracks[i].squarePosition = Vec3f(
                                                 x*wallScaler - ((sqrt(myModels[j]->myTracks.size())/2.0)*wallScaler),
                                                 y*wallScaler - ((sqrt(myModels[j]->myTracks.size())/2.0)*wallScaler),
-                                                -rad
+                                                0
                                                 );
 
                 // circle position
@@ -543,6 +543,7 @@ void pollOSC() {
                 xScale = xScale * (1-time) + 1.0*time;
                 myModels[modelIndex]->myTracks[i].animate = false;
             }
+            nav().pos() = nav().pos()*(1-time) + Vec3f(0,0,0)*time;
         } else if (target == 2) {
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 myModels[modelIndex]->myTracks[i].position =
@@ -553,6 +554,7 @@ void pollOSC() {
                 accRot.set(0);
                 myModels[modelIndex]->myTracks[i].animate = false;
             }
+            nav().pos() = nav().pos()*(1-time) + Vec3f(0,0,0)*time;
         } else if (target == 3) {
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 myModels[modelIndex]->myTracks[i].position =
@@ -561,6 +563,7 @@ void pollOSC() {
                 xScale = xScale * (1-time) + 1.0*time;
                 myModels[modelIndex]->myTracks[i].animate = false;
             }
+            nav().pos() = nav().pos()*(1-time) + Vec3f(0,0,0)*time;
         } else if (target == 4) {
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 myModels[modelIndex]->myTracks[i].position =
@@ -569,6 +572,7 @@ void pollOSC() {
                 xScale = xScale * (1-time) + 1.0*time;
                 myModels[modelIndex]->myTracks[i].animate = false;
             }
+            nav().pos() = nav().pos()*(1-time) + Vec3f(0,0,0)*time;
         } else if (target == 5) {
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 myModels[modelIndex]->myTracks[i].position =
@@ -577,6 +581,7 @@ void pollOSC() {
                 xScale = xScale * (1-time) + 1.0*time;
                 myModels[modelIndex]->myTracks[i].animate = false;
             }
+            nav().pos() = nav().pos()*(1-time) + Vec3f(0,0,0)*time;
         } else if (target == 6) {
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 myModels[modelIndex]->myTracks[i].position =
@@ -585,6 +590,7 @@ void pollOSC() {
                 xScale = xScale * (1-time) + 1.0*time;
                 myModels[modelIndex]->myTracks[i].animate = false;
             }
+            nav().pos() = nav().pos()*(1-time) + Vec3f(0,0,0)*time;
         } else if (target == 7) {
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 myModels[modelIndex]->myTracks[i].position =
@@ -593,6 +599,7 @@ void pollOSC() {
                 xScale = xScale * (1-time) + 1.0*time;
                 myModels[modelIndex]->myTracks[i].animate = false;
             }
+            nav().pos() = nav().pos()*(1-time) + Vec3f(0,0,0)*time;
         } else if (target == 8) {
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 myModels[modelIndex]->myTracks[i].position =
@@ -601,6 +608,7 @@ void pollOSC() {
                 xScale = xScale * (1-time) + 1.0*time;
                 myModels[modelIndex]->myTracks[i].animate = false;
             }
+            nav().pos() = nav().pos()*(1-time) + Vec3f(0,0,rad)*time;
         } else if (target == 0) {
             for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
                 xScale = xScale * (1-time) + 1.0*time;
