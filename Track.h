@@ -171,7 +171,7 @@ Track::Track(int samplingRate, float dur, vector<double>& freqs_, vector<double>
     selectedColor = RGB(0.5, 0.0, 0.5);
     gainScaler = 1.0;
     mute = 1.0;
-    position = spectralPosition;
+    position = nullPosition;
     animate = false;
     play = false;
     isReverse = false;
@@ -521,6 +521,7 @@ float Track::player() {
     {
         if (compMode)
         {
+            selected = true;
             getEnvelopeValues();
         }
 

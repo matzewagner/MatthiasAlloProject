@@ -32,7 +32,7 @@ using namespace std;
 
 osc::Send sender(9010, "127.0.0.1");
 
-string filePath[5];
+string filePath[6];
 
 // simulator struct
 struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
@@ -48,7 +48,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     int trigger = 0;
     float floatTrigger = 0;
     double now = 0;
-    int target = 1;
+    int target = 2;
     float mappedCircle, sphericalToX, sphericalToY, sphericalToZ;
     float rad = 7.5;
     float lineLength = 10.0;
@@ -117,7 +117,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 //        myModels[0] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
 //        myModels[1] = new LorisModel(filePath[4], 4.0, 220, 44100, 0.1, 0.2, 0.032, 0.25, -80, 0.05, 200, 400, 2, false, "2Sines");
 //        myModels[0] = new LorisModel(filePath[0], 2.0, 110, 44100, 0.5, 0.25, 0.008, 0.5, -180, 0.015, 20, 10000, 60, false, "pianoA3Model");
-        myModels[0] = new LorisModel(filePath[6], 4.0, 65, 44100, 0.4, 0.25, 0.032, 0.5, -120, 0.015, 20, 15000, 63, false, "pianoC2Model");
+        myModels[0] = new LorisModel(filePath[6], 4.0, 65, 44100, 0.4, 0.25, 0.032, 0.5, -60, 0.015, 20, 15000, 63, false, "pianoC2Model");
         // sf, dur, f0, sr, freqResFactor, freqDevFactor, hopTime, freqFloorFactor, ampFloor, minTrackDur, frqMin, frqMax, maxNTracks, getLoudestTracks, modelName
 
         modelIndex = 0;
@@ -186,12 +186,14 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                         Vec3f(0, 0, ((i*lineLength)-(lineLength*myModels[j]->nTracks*0.75))/float(myModels[j]->nTracks));
 
                 // highest freqs closest position
-                float freqScaler = myModels[modelIndex]->myTracks[0].freqFactor*3;
-                myModels[j]->myTracks[i].hiFreqsClosestPos =
-                        Vec3f(0, 0, (15000*freqScaler) - myModels[j]->myTracks[i].freqAverage*freqScaler);
+                mappedCircle = circleIndex * (8.0*M_PI/float(myModels[j]->nTracks));
+                myModels[j]->myTracks[i].hiFreqsClosestPos = Vec3f(sin(mappedCircle)*(rad*0.25),
+                                                                   float(i)/float(7.5) - float(myModels[j]->nTracks)/float(15.0),
+                                                                   cos(mappedCircle)*(rad*0.25));
 
                 // loudest tracks furthest position
-                myModels[j]->myTracks[i].loudestAwayPos = Vec3f(0, 0, -myModels[j]->myTracks[i].level*0.001);
+                mappedCircle = circleIndex * (8.0*M_PI/float(myModels[j]->nTracks));
+                myModels[j]->myTracks[i].loudestAwayPos = Vec3f(sin(mappedCircle)*rad, i/(myModels[j]->nTracks), cos(mappedCircle)*rad);
 
                 // set state values for individual tracks
                 state->g_Models[j].g_Tracks[i].offColor = myModels[j]->myTracks[i].offColor;
@@ -218,7 +220,7 @@ struct Sim : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 void pollOSC() {
 
         globalAmp = globalGain.get()*10;
-        loopLength = loopTime.get()*5;
+        loopLength = loopTime.get()*5 + (0.001);
 
         // select model
         if (model0.get() == 1.0 && currentModel != 0) {
@@ -268,18 +270,18 @@ void pollOSC() {
         playPosition = double(playPos.get()*myModels[modelIndex]->duration);
         globalPlayRate = (playRate.get()*10)-5.0;
 
-        // unselect all tracks
+        // for all tracks
         for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-            // set playhead position
+
+            // pass globalPlayrate to each track
+            myModels[modelIndex]->myTracks[i].playRate = globalPlayRate;
+            myModels[modelIndex]->myTracks[i].playPosition = playPosition + double(trigger/double(sr));
+            // set playhead direction
             if (globalPlayRate < 0) {
                 myModels[modelIndex]->myTracks[i].isReverse = true;
             } else if(globalPlayRate > 0) {
                 myModels[modelIndex]->myTracks[i].isReverse = false;
             }
-
-            // pass globalPlayrate to each track
-            myModels[modelIndex]->myTracks[i].playRate = globalPlayRate;
-            myModels[modelIndex]->myTracks[i].playPosition = playPosition + double(trigger/double(sr));
 
             if (selectAll.get() == 0) {
                 myModels[modelIndex]->myTracks[i].selected = false;
@@ -343,6 +345,8 @@ void pollOSC() {
             }
 
             if (trackTrigger[i]->get() == 1.0) {
+                myModels[modelIndex]->myTracks[i].drawSelected = true;
+                //trackSelector[i]->set(1.0);
                 myModels[modelIndex]->myTracks[i].singleTrigger = true;
             }
             if (!trackLooper)
@@ -437,12 +441,23 @@ void pollOSC() {
         Yrotation = (rotY.get()*10) - 5.0;
         Zrotation = (rotZ.get()*10) - 5.0;
 
-//        accumRotation = accRot.get();
-        accumRotation = true;
+        // accumulate rotation angle
+        if (!playComp)
+        {
+            accumRotation = accRot.get();
+        }
+        else
+        {
+            accumRotation = true;
+        }
+
         for (int i=0; i<myModels[modelIndex]->nTracks; ++i) {
-            if (accumRotation) {
+            if (accumRotation)
+            {
                 myModels[modelIndex]->myTracks[i].rotAngle += rotator;
-            } else {
+            }
+            else
+            {
                 myModels[modelIndex]->myTracks[i].rotAngle = rotator;
             }
             myModels[modelIndex]->myTracks[i].rX = Xrotation;
@@ -515,13 +530,13 @@ void pollOSC() {
             state->g_Models[modelIndex].g_Tracks[i].position = myModels[modelIndex]->myTracks[i].rotatedPosition;
             state->g_Models[modelIndex].g_Tracks[i].playHeadPosition = myModels[modelIndex]->myTracks[i].playHeadPosition;
             state->g_Models[modelIndex].g_Tracks[i].play = myModels[modelIndex]->myTracks[i].play;
-            state->g_Models[modelIndex].g_Tracks[i].sample = myModels[modelIndex]->myTracks[i].out;
+            state->g_Models[modelIndex].g_Tracks[i].sample = myModels[modelIndex]->myTracks[i].s;
             state->g_Models[modelIndex].g_Tracks[i].drawMode = myModels[modelIndex]->myTracks[i].drawMode;
             state->g_Models[modelIndex].g_Tracks[i].offColor = myModels[modelIndex]->myTracks[i].offColor;
         }
 
         // use 'time' to lerp between positions
-        time += dt*0.25;
+        time += dt*0.0625;
         if (time > 1) { time = 1; }
 
         if (target == 1) {
@@ -538,6 +553,8 @@ void pollOSC() {
                         myModels[modelIndex]->myTracks[i].position * (1-time)
                         + myModels[modelIndex]->myTracks[i].nullPosition*myModels[modelIndex]->myTracks[i].positionScaler*time;
 //                xScale = xScale * (1-time) + 0.0*time;
+                resetRot.set(1.0);
+                accRot.set(0);
                 myModels[modelIndex]->myTracks[i].animate = false;
             }
         } else if (target == 3) {

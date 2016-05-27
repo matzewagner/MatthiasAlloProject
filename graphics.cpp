@@ -13,6 +13,7 @@ struct Gra : OmniStereoGraphicsRenderer {
   State* state;
 
   Light light;
+  Material material;
   unsigned short g_ModelIndex;
   double timeFlag = 0;
 
@@ -39,9 +40,8 @@ struct Gra : OmniStereoGraphicsRenderer {
     	freqEnv[i].primitive(Graphics::LINE_STRIP);
       box[i].primitive(Graphics::LINES);
       ball[i].primitive(Graphics::TRIANGLES);
-      ball[i].generateNormals();
       addSphere(ball[i], 1, 64, 64);
-
+      ball[i].generateNormals();
     }
     
     playHead.primitive(Graphics::LINE_STRIP);
@@ -51,11 +51,17 @@ struct Gra : OmniStereoGraphicsRenderer {
     playHeadColor = RGB(0, 0.75, 1.0);
 
     selectedColor = RGB(0.5, 0, 0.5);
+
+    light.ambient(Color(0.5, 0.5, 0.5, 0.0));
+    light.diffuse(Color(0.5, 0.5, 0.5, 1.0));
+    light.specular(Color(0.5, 0.5, 0.5, 1.0));
   }
 
   virtual ~Gra() {}
 
   virtual void onAnimate(double dt) {
+    static float count = 0;
+    count += 1;
         	
           if (timeFlag < 0.5) {
 
@@ -85,7 +91,7 @@ struct Gra : OmniStereoGraphicsRenderer {
             while (taker.get(*state));
             // int popCount = taker.get(*state);
             pose = state->pose;
-            light.pos(state->lightPos);
+            // light.pos(state->lightPos + Vec3f(sinf(count * 0.01), 0.0, 0.0));
             g_ModelIndex = state->modelIndex;
 
             // cout << "Index: " << g_ModelIndex << endl;
@@ -105,9 +111,9 @@ struct Gra : OmniStereoGraphicsRenderer {
               
                   agentColor[i] = Color(
                                       offColor[i] + sample[i]*colorScaler[i],
-                                      offColor[i] + 0.1 + (sample[i]*colorScaler[i]*0.5), 
+                                      offColor[i] + (sample[i]*colorScaler[i]*0.5), 
                                       offColor[i] + (sample[i]*colorScaler[i]*0.5),
-                                      (sample[i]+1.0) *0.5
+                                      1.0
                                       );
               // agentColor[i] = RGB(1, 1, 1);
             }
@@ -119,11 +125,16 @@ struct Gra : OmniStereoGraphicsRenderer {
   virtual void onDraw(Graphics& g) {
           g.clear(Graphics::COLOR_BUFFER_BIT | Graphics::DEPTH_BUFFER_BIT);
           g.clearColor(0, 0, 0, 1.0);
-          g.blendTrans();
           g.depthTesting(true);
           // cout << "check" << endl;
 
+          shader().uniform("lighting", 1.0);
+          material.useColorMaterial(true);
+          material();
+
           for (int i=0; i<state->g_Models[g_ModelIndex].numTracks; ++i) {
+            light.dir(state->lightPos - state->g_Models[g_ModelIndex].g_Tracks[i].position);
+            light();
             
             //draw agents
             g.pushMatrix();
@@ -133,7 +144,8 @@ struct Gra : OmniStereoGraphicsRenderer {
             {
                     g.pushMatrix();
                     g.color(agentColor[i]);
-                    g.scale(abs(sample[i])*2.0 + 0.03);
+                    // g.color(Color(0.5, 0.5, 0.5, 1.0));
+                    g.scale(0.1);
                     g.draw(ball[i]);
                     g.popMatrix();
             }
@@ -162,7 +174,7 @@ struct Gra : OmniStereoGraphicsRenderer {
 
           }
 
-          shader().uniform("lighting", 0.0);
+          // shader().uniform("lighting", 0.0);
           omni().clearColor() = state->bgColor;
 
           lens().near(state->nearClip);
