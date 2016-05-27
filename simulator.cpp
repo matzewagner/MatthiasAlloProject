@@ -721,7 +721,7 @@ void pollOSC() {
                 }
 
                 // add each agent's sound output to global output
-                s = myModels[modelIndex]->myTracks[i].onSound()*globalAmp*5.25;
+                s = myModels[modelIndex]->myTracks[i].onSound()*globalAmp*0.25;
                 tap[i].writeSample((s));
             }
 
